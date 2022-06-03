@@ -1,0 +1,26 @@
+{
+  "private": true,
+  "name": "motherload-clone",
+  "description": "Motherload game clone using Cocos Creator 3.5.1.",
+  "uuid": "bec615d3-de8e-4726-beba-8f0444fa522a",
+  "version": "0.1.0",
+  "creator": {
+    "version": "3.5.1"
+  },
+  "license": "MIT",
+  "repository": "https://github.com/Hashish-Crypto/motherload-clone.git",
+  "author": "Leandro Acquati <leandroacquati@gmail.com>",
+  "main": "index.js",
+  "devDependencies": {
+    "@babel/core": "^7.18.2",
+    "@babel/eslint-parser": "^7.18.2",
+    "@typescript-eslint/eslint-plugin": "^5.27.0",
+    "@typescript-eslint/parser": "^5.27.0",
+    "eslint": "^8.16.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-import": "^2.26.0",
+    "prettier": "^2.6.2",
+    "typescript": "^4.7.2"
+  }
+}
