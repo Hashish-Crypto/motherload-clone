@@ -11,7 +11,12 @@ import {
   resources,
   SpriteFrame,
   UITransform,
+  EventKeyboard,
+  input,
+  Input,
+  KeyCode,
 } from 'cc'
+import { PlayerManager } from './PlayerManager'
 
 const { ccclass, property } = _decorator
 
@@ -23,10 +28,17 @@ export class GameSceneManager extends Component {
   @property({ type: Prefab })
   public groundPrefab: Prefab | null = null
 
+  @property({ type: Node })
+  public player: Node | null = null
+
   private _groundGrid: Node[][] = []
   private _groundGridWidth: number = 30
   private _groundGridHeight: number = 90
   private _debug: boolean = false
+  private _playerControllerActive: boolean = true
+  private _movementCommands: string[] = []
+  private _lastMovementCommand: string = ''
+  private _playerManager: PlayerManager | null = null
 
   onLoad() {
     if (this._debug) {
@@ -98,6 +110,10 @@ export class GameSceneManager extends Component {
         this.groundRef.addChild(this._groundGrid[y][x])
       }
     }
+
+    input.on(Input.EventType.KEY_DOWN, this._onKeyDown, this)
+    input.on(Input.EventType.KEY_UP, this._onKeyUp, this)
+    this._playerManager = this.player.getComponent(PlayerManager)
   }
 
   // update(deltaTime: number) {}
@@ -107,5 +123,75 @@ export class GameSceneManager extends Component {
       this._groundGrid[y][x].getComponent(Sprite).spriteFrame = spriteFrame
       if (error) console.log(error)
     })
+  }
+
+  private _onKeyDown(event: EventKeyboard) {
+    if (this._playerControllerActive) {
+      if (event.keyCode === KeyCode.KEY_W && !this._movementCommands.includes('w')) {
+        this._lastMovementCommand = 'w'
+        this._movementCommands.push('w')
+        this._movePlayer()
+      } else if (event.keyCode === KeyCode.KEY_D && !this._movementCommands.includes('d')) {
+        this._lastMovementCommand = 'd'
+        this._movementCommands.push('d')
+        this._movePlayer()
+      } else if (event.keyCode === KeyCode.KEY_S && !this._movementCommands.includes('s')) {
+        this._lastMovementCommand = 's'
+        this._movementCommands.push('s')
+        this._movePlayer()
+      } else if (event.keyCode === KeyCode.KEY_A && !this._movementCommands.includes('a')) {
+        this._lastMovementCommand = 'a'
+        this._movementCommands.push('a')
+        this._movePlayer()
+      }
+    }
+  }
+
+  private _onKeyUp(event: EventKeyboard) {
+    if (this._playerControllerActive) {
+      if (event.keyCode === KeyCode.KEY_W) {
+        this._movementCommands = this._removeItem(this._movementCommands, 'w')
+        if (this._movementCommands.length === 0) {
+          this._playerManager.idleLeft()
+        }
+      } else if (event.keyCode === KeyCode.KEY_D) {
+        this._movementCommands = this._removeItem(this._movementCommands, 'd')
+        if (this._movementCommands.length === 0) {
+          this._playerManager.idleRight()
+        }
+      } else if (event.keyCode === KeyCode.KEY_S) {
+        this._movementCommands = this._removeItem(this._movementCommands, 's')
+        if (this._movementCommands.length === 0) {
+          this._playerManager.idleLeft()
+        }
+      } else if (event.keyCode === KeyCode.KEY_A) {
+        this._movementCommands = this._removeItem(this._movementCommands, 'a')
+        if (this._movementCommands.length === 0) {
+          this._playerManager.idleLeft()
+        }
+      }
+
+      if (this._lastMovementCommand !== this._movementCommands[this._movementCommands.length - 1]) {
+        this._movePlayer()
+      }
+    }
+  }
+
+  private _removeItem(arr: string[], value: string) {
+    return arr.filter((element) => element !== value)
+  }
+
+  private _movePlayer() {
+    if (this._movementCommands.length >= 1) {
+      if (this._movementCommands[this._movementCommands.length - 1] === 'w') {
+        this._playerManager.flyLeft()
+      } else if (this._movementCommands[this._movementCommands.length - 1] === 'd') {
+        this._playerManager.moveRight()
+      } else if (this._movementCommands[this._movementCommands.length - 1] === 's') {
+        this._playerManager.digDownLeft()
+      } else if (this._movementCommands[this._movementCommands.length - 1] === 'a') {
+        this._playerManager.moveLeft()
+      }
+    }
   }
 }
