@@ -15,6 +15,8 @@ import {
   input,
   Input,
   KeyCode,
+  Contact2DType,
+  Collider2D,
 } from 'cc'
 import { PlayerManager } from './PlayerManager'
 
@@ -34,11 +36,11 @@ export class GameSceneManager extends Component {
   private _groundGrid: Node[][] = []
   private _groundGridWidth: number = 30
   private _groundGridHeight: number = 90
-  private _debug: boolean = false
   private _playerControllerActive: boolean = true
   private _movementCommands: string[] = []
   private _lastMovementCommand: string = ''
   private _playerManager: PlayerManager | null = null
+  private _debug: boolean = false
 
   onLoad() {
     if (this._debug) {
@@ -114,6 +116,8 @@ export class GameSceneManager extends Component {
     input.on(Input.EventType.KEY_DOWN, this._onKeyDown, this)
     input.on(Input.EventType.KEY_UP, this._onKeyUp, this)
     this._playerManager = this.player.getComponent(PlayerManager)
+
+    PhysicsSystem2D.instance.on(Contact2DType.BEGIN_CONTACT, this._onBeginContact, this)
   }
 
   // update(deltaTime: number) {}
@@ -193,5 +197,9 @@ export class GameSceneManager extends Component {
         this._playerManager.moveLeft()
       }
     }
+  }
+
+  protected _onBeginContact(a: Collider2D, b: Collider2D) {
+    console.log(a, b)
   }
 }

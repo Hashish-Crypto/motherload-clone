@@ -159,12 +159,12 @@
       "y": 0
     },
     "_angularVelocity": 0,
-    "_fixedRotation": true,
+    "_fixedRotation": false,
     "_id": ""
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "dduV8D7DBE1I2T7pJ+eUjL"
+    "fileId": "cfgro47khN8Kye5LSimaak"
   },
   {
     "__type__": "cc.BoxCollider2D",
