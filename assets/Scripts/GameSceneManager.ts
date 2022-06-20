@@ -4,7 +4,6 @@ import {
   Node,
   Prefab,
   PhysicsSystem2D,
-  EPhysics2DDrawFlags,
   instantiate,
   randomRangeInt,
   Sprite,
@@ -22,6 +21,12 @@ import { PlayerManager } from './PlayerManager'
 
 const { ccclass, property } = _decorator
 
+interface IGroundNode {
+  x: number
+  y: number
+  distance: number
+}
+
 @ccclass('GameSceneManager')
 export class GameSceneManager extends Component {
   @property({ type: Node })
@@ -34,24 +39,16 @@ export class GameSceneManager extends Component {
   public player: Node | null = null
 
   private _groundGrid: Node[][] = []
-  private _groundGridWidth: number = 30
-  private _groundGridHeight: number = 90
+  private _groundGridWidth: number = 20
+  private _groundGridHeight: number = 20
   private _playerControllerActive: boolean = true
   private _movementCommands: string[] = []
   private _lastMovementCommand: string = ''
   private _playerManager: PlayerManager | null = null
-  private _debug: boolean = false
+  private _timer: number = 0
+  private _timerActive: boolean = false
 
   onLoad() {
-    if (this._debug) {
-      PhysicsSystem2D.instance.debugDrawFlags =
-        EPhysics2DDrawFlags.Aabb |
-        EPhysics2DDrawFlags.Pair |
-        EPhysics2DDrawFlags.CenterOfMass |
-        EPhysics2DDrawFlags.Joint |
-        EPhysics2DDrawFlags.Shape
-    }
-
     const tempGroundNode = instantiate(this.groundPrefab)
     const squareSide = tempGroundNode.getComponent(UITransform).width
     tempGroundNode.destroy()
@@ -120,7 +117,15 @@ export class GameSceneManager extends Component {
     PhysicsSystem2D.instance.on(Contact2DType.BEGIN_CONTACT, this._onBeginContact, this)
   }
 
-  // update(deltaTime: number) {}
+  update(deltaTime: number) {
+    if (this._playerControllerActive && this._movementCommands.length >= 1 && this._timerActive) {
+      this._timer += deltaTime
+      if (this._timer >= 0.1) {
+        this._movePlayer()
+        this._timer = 0
+      }
+    }
+  }
 
   private _loadGroundSprite(fileName: string, y: number, x: number) {
     resources.load('Textures/Tiles/' + fileName + '/spriteFrame', SpriteFrame, (error, spriteFrame) => {
@@ -135,18 +140,24 @@ export class GameSceneManager extends Component {
         this._lastMovementCommand = 'w'
         this._movementCommands.push('w')
         this._movePlayer()
+        this._timerActive = true
       } else if (event.keyCode === KeyCode.KEY_D && !this._movementCommands.includes('d')) {
         this._lastMovementCommand = 'd'
         this._movementCommands.push('d')
         this._movePlayer()
+        this._timerActive = true
       } else if (event.keyCode === KeyCode.KEY_S && !this._movementCommands.includes('s')) {
         this._lastMovementCommand = 's'
         this._movementCommands.push('s')
         this._movePlayer()
+        console.log(this.player.position.x, this.player.position.y)
+        console.log(this._belowPlayerGround())
+        this._timerActive = true
       } else if (event.keyCode === KeyCode.KEY_A && !this._movementCommands.includes('a')) {
         this._lastMovementCommand = 'a'
         this._movementCommands.push('a')
         this._movePlayer()
+        this._timerActive = true
       }
     }
   }
@@ -157,26 +168,32 @@ export class GameSceneManager extends Component {
         this._movementCommands = this._removeItem(this._movementCommands, 'w')
         if (this._movementCommands.length === 0) {
           this._playerManager.idleLeft()
+          this._timerActive = false
         }
       } else if (event.keyCode === KeyCode.KEY_D) {
         this._movementCommands = this._removeItem(this._movementCommands, 'd')
         if (this._movementCommands.length === 0) {
           this._playerManager.idleRight()
+          this._timerActive = false
         }
       } else if (event.keyCode === KeyCode.KEY_S) {
         this._movementCommands = this._removeItem(this._movementCommands, 's')
         if (this._movementCommands.length === 0) {
           this._playerManager.idleLeft()
+          this._timerActive = false
         }
       } else if (event.keyCode === KeyCode.KEY_A) {
         this._movementCommands = this._removeItem(this._movementCommands, 'a')
         if (this._movementCommands.length === 0) {
           this._playerManager.idleLeft()
+          this._timerActive = false
         }
       }
 
+      // If there is still a key pressed, it triggers the player movement.
       if (this._lastMovementCommand !== this._movementCommands[this._movementCommands.length - 1]) {
         this._movePlayer()
+        this._timerActive = true
       }
     }
   }
@@ -199,7 +216,34 @@ export class GameSceneManager extends Component {
     }
   }
 
-  protected _onBeginContact(a: Collider2D, b: Collider2D) {
-    console.log(a, b)
+  private _onBeginContact(a: Collider2D, b: Collider2D) {
+    // console.log(this._movementCommands[this._movementCommands.length - 1])
+  }
+
+  private _belowPlayerGround() {
+    const groundNode: IGroundNode[] = []
+
+    for (let y = 0; y < this._groundGridHeight; y += 1) {
+      for (let x = 0; x < this._groundGridWidth; x += 1) {
+        groundNode.push({
+          x: this._groundGrid[y][x].position.x,
+          y: this._groundGrid[y][x].position.y,
+          distance: this._getDistanceBetweenPoints(
+            this._groundGrid[y][x].position.x,
+            this._groundGrid[y][x].position.y,
+            this.player.position.x,
+            this.player.position.y
+          ),
+        })
+        console.log(groundNode[groundNode.length - 1])
+      }
+    }
+  }
+
+  private _getDistanceBetweenPoints(xA: number, yA: number, xB: number, yB: number) {
+    const xDiff = xA - xB
+    const yDiff = yA - yB
+
+    return Math.sqrt(xDiff * xDiff + yDiff * yDiff)
   }
 }

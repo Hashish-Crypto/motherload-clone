@@ -4,7 +4,7 @@ const { ccclass } = _decorator
 
 @ccclass('PlayerManager')
 export class PlayerManager extends Component {
-  private _velocity: number = 5
+  private _velocity: number = 2
   private _body: RigidBody2D | null = null
   private _animation: Animation | null = null
 
@@ -16,32 +16,30 @@ export class PlayerManager extends Component {
   // update(deltaTime: number) {}
 
   public flyLeft() {
-    this._body.linearVelocity = new Vec2(0, this._velocity)
+    this._body.applyLinearImpulseToCenter(new Vec2(0, this._velocity * 2), true)
     this._animation.play('flyLeft')
   }
 
   public flyRight() {
-    this._body.linearVelocity = new Vec2(0, this._velocity)
+    this._body.applyLinearImpulseToCenter(new Vec2(0, this._velocity * 2), true)
     this._animation.play('flyRight')
   }
 
   public digDownLeft() {
-    this._body.linearVelocity = new Vec2(0, -this._velocity)
     this._animation.play('digDownLeft')
   }
 
   public digDownRight() {
-    this._body.linearVelocity = new Vec2(0, -this._velocity)
     this._animation.play('digDownRight')
   }
 
   public moveLeft() {
-    this._body.linearVelocity = new Vec2(-this._velocity, 0)
+    this._body.applyLinearImpulseToCenter(new Vec2(-this._velocity, 0), true)
     this._animation.play('moveLeft')
   }
 
   public moveRight() {
-    this._body.linearVelocity = new Vec2(this._velocity, 0)
+    this._body.applyLinearImpulseToCenter(new Vec2(this._velocity, 0), true)
     this._animation.play('moveRight')
   }
 
@@ -56,12 +54,10 @@ export class PlayerManager extends Component {
   }
 
   public idleLeft() {
-    this._body.linearVelocity = new Vec2(0, 0)
     this._animation.play('idleLeft')
   }
 
   public idleRight() {
-    this._body.linearVelocity = new Vec2(0, 0)
     this._animation.play('idleRight')
   }
 }
