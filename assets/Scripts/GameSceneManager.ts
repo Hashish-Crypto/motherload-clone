@@ -16,6 +16,9 @@ import {
   KeyCode,
   Contact2DType,
   Collider2D,
+  Vec2,
+  BoxCollider2D,
+  isValid,
 } from 'cc'
 import { PlayerManager } from './PlayerManager'
 
@@ -25,6 +28,14 @@ interface IGroundNode {
   x: number
   y: number
   distance: number
+  node: Node
+}
+
+enum Direction {
+  UP,
+  RIGHT,
+  DOWN,
+  LEFT,
 }
 
 @ccclass('GameSceneManager')
@@ -150,8 +161,7 @@ export class GameSceneManager extends Component {
         this._lastMovementCommand = 's'
         this._movementCommands.push('s')
         this._movePlayer()
-        console.log(this.player.position.x, this.player.position.y)
-        console.log(this._belowPlayerGround())
+        this._belowPlayerGround()
         this._timerActive = true
       } else if (event.keyCode === KeyCode.KEY_A && !this._movementCommands.includes('a')) {
         this._lastMovementCommand = 'a'
@@ -217,33 +227,80 @@ export class GameSceneManager extends Component {
   }
 
   private _onBeginContact(a: Collider2D, b: Collider2D) {
-    // console.log(this._movementCommands[this._movementCommands.length - 1])
+    // TODO: Check if velocity is to high than do damage
   }
 
   private _belowPlayerGround() {
-    const groundNode: IGroundNode[] = []
+    // TODO: Check if the active nodes on this._groundGrid
+    const groundNodes: IGroundNode[] = []
 
     for (let y = 0; y < this._groundGridHeight; y += 1) {
       for (let x = 0; x < this._groundGridWidth; x += 1) {
-        groundNode.push({
-          x: this._groundGrid[y][x].position.x,
-          y: this._groundGrid[y][x].position.y,
-          distance: this._getDistanceBetweenPoints(
-            this._groundGrid[y][x].position.x,
-            this._groundGrid[y][x].position.y,
-            this.player.position.x,
-            this.player.position.y
-          ),
-        })
-        console.log(groundNode[groundNode.length - 1])
+        if (isValid(this._groundGrid[y][x])) {
+          groundNodes.push({
+            x: this._groundGrid[y][x].position.x,
+            y: this._groundGrid[y][x].position.y,
+            distance: this._getDistanceBetweenPoints(
+              this.player.position.x,
+              this.player.position.y + this.player.getComponent(BoxCollider2D).offset.y,
+              this._groundGrid[y][x].position.x,
+              this._groundGrid[y][x].position.y
+            ),
+            node: this._groundGrid[y][x],
+          })
+        }
       }
+    }
+
+    groundNodes.sort((a, b) => a.distance - b.distance)
+
+    const belowPlayerGrounds: IGroundNode[] = []
+    for (let i = 0; i < 8; i += 1) {
+      if (
+        this._getVectorDirection(
+          this.player.position.x,
+          this.player.position.y + this.player.getComponent(BoxCollider2D).offset.y,
+          groundNodes[i].x,
+          groundNodes[i].y
+        ) === Direction.DOWN
+      ) {
+        belowPlayerGrounds.push(groundNodes[i])
+      }
+    }
+
+    if (belowPlayerGrounds.length === 0) return
+
+    if (
+      Math.hypot(
+        this.player.getComponent(BoxCollider2D).size.height / 2 +
+          belowPlayerGrounds[0].node.getComponent(UITransform).contentSize.height / 2,
+        belowPlayerGrounds[0].node.getComponent(UITransform).contentSize.width / 2
+      ) >= belowPlayerGrounds[0].distance
+    ) {
+      belowPlayerGrounds[0].node.destroy()
     }
   }
 
   private _getDistanceBetweenPoints(xA: number, yA: number, xB: number, yB: number) {
-    const xDiff = xA - xB
-    const yDiff = yA - yB
+    return Math.hypot(xB - xA, yB - yA)
+  }
 
-    return Math.sqrt(xDiff * xDiff + yDiff * yDiff)
+  private _getVectorDirection(xA: number, yA: number, xB: number, yB: number) {
+    const vector = new Vec2(xB - xA, yB - yA).normalize()
+    const piDividedBy4 = Math.PI / 4
+    if (vector.x < piDividedBy4 && vector.x > -piDividedBy4 && vector.y >= piDividedBy4) {
+      return Direction.UP
+    }
+    if (vector.x >= piDividedBy4 && vector.y < piDividedBy4 && vector.y > -piDividedBy4) {
+      return Direction.RIGHT
+    }
+    if (vector.x < piDividedBy4 && vector.x > -piDividedBy4 && vector.y <= -piDividedBy4) {
+      return Direction.DOWN
+    }
+    if (vector.x <= -piDividedBy4 && vector.y < piDividedBy4 && vector.y > -piDividedBy4) {
+      return Direction.LEFT
+    }
+
+    return undefined
   }
 }
