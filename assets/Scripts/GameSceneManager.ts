@@ -231,8 +231,9 @@ export class GameSceneManager extends Component {
   }
 
   private _belowPlayerGround() {
-    // TODO: Check if the active nodes on this._groundGrid
+    // TODO: Check if has active nodes on this._groundGrid
     const groundNodes: IGroundNode[] = []
+    let validNodes = 0
 
     for (let y = 0; y < this._groundGridHeight; y += 1) {
       for (let x = 0; x < this._groundGridWidth; x += 1) {
@@ -248,9 +249,13 @@ export class GameSceneManager extends Component {
             ),
             node: this._groundGrid[y][x],
           })
+
+          validNodes += 1
         }
       }
     }
+
+    if (validNodes === 0) return
 
     groundNodes.sort((a, b) => a.distance - b.distance)
 
@@ -270,13 +275,15 @@ export class GameSceneManager extends Component {
 
     if (belowPlayerGrounds.length === 0) return
 
-    if (
-      Math.hypot(
-        this.player.getComponent(BoxCollider2D).size.height / 2 +
-          belowPlayerGrounds[0].node.getComponent(UITransform).contentSize.height / 2,
-        belowPlayerGrounds[0].node.getComponent(UITransform).contentSize.width / 2
-      ) >= belowPlayerGrounds[0].distance
-    ) {
+    const h1 =
+      this.player.getComponent(BoxCollider2D).size.height / 2 +
+      belowPlayerGrounds[0].node.getComponent(UITransform).contentSize.height / 2
+    const w1 = belowPlayerGrounds[0].node.getComponent(UITransform).contentSize.width / 2
+    const h2 = Math.abs(
+      this.player.position.y + this.player.getComponent(BoxCollider2D).offset.y - belowPlayerGrounds[0].y
+    )
+
+    if (Math.hypot(h1, w1) >= belowPlayerGrounds[0].distance && h2 <= h1 + 1) {
       belowPlayerGrounds[0].node.destroy()
     }
   }
