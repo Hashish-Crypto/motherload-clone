@@ -56,8 +56,10 @@ export class GameSceneManager extends Component {
   private _movementCommands: string[] = []
   private _lastMovementCommand: string = ''
   private _playerManager: PlayerManager | null = null
-  private _timer: number = 0
-  private _timerActive: boolean = false
+  private _movementTimer: number = 0
+  private _movementTimerActive: boolean = false
+  private _canDigDownTimer: number = 0
+  private _canDigDownTimerActive: boolean = false
 
   onLoad() {
     const tempGroundNode = instantiate(this.groundPrefab)
@@ -129,11 +131,20 @@ export class GameSceneManager extends Component {
   }
 
   update(deltaTime: number) {
-    if (this._playerControllerActive && this._movementCommands.length >= 1 && this._timerActive) {
-      this._timer += deltaTime
-      if (this._timer >= 0.1) {
+    if (this._playerControllerActive && this._movementCommands.length >= 1 && this._movementTimerActive) {
+      this._movementTimer += deltaTime
+      if (this._movementTimer >= 0.1) {
         this._movePlayer()
-        this._timer = 0
+        this._movementTimer = 0
+      }
+    }
+    if (this._playerControllerActive && this._movementCommands.length >= 1 && this._canDigDownTimerActive) {
+      this._canDigDownTimer += deltaTime
+      if (this._canDigDownTimer >= 0.25) {
+        if (this._canDigDown()) {
+          this._playerManager.digDownLeft()
+        }
+        this._movementTimer = 0
       }
     }
   }
@@ -151,23 +162,24 @@ export class GameSceneManager extends Component {
         this._lastMovementCommand = 'w'
         this._movementCommands.push('w')
         this._movePlayer()
-        this._timerActive = true
+        this._movementTimerActive = true
       } else if (event.keyCode === KeyCode.KEY_D && !this._movementCommands.includes('d')) {
         this._lastMovementCommand = 'd'
         this._movementCommands.push('d')
         this._movePlayer()
-        this._timerActive = true
+        this._movementTimerActive = true
       } else if (event.keyCode === KeyCode.KEY_S && !this._movementCommands.includes('s')) {
         this._lastMovementCommand = 's'
         this._movementCommands.push('s')
-        this._movePlayer()
-        this._belowPlayerGround()
-        this._timerActive = true
+        if (this._canDigDown()) {
+          this._movePlayer()
+        }
+        this._canDigDownTimerActive = true
       } else if (event.keyCode === KeyCode.KEY_A && !this._movementCommands.includes('a')) {
         this._lastMovementCommand = 'a'
         this._movementCommands.push('a')
         this._movePlayer()
-        this._timerActive = true
+        this._movementTimerActive = true
       }
     }
   }
@@ -178,32 +190,33 @@ export class GameSceneManager extends Component {
         this._movementCommands = this._removeItem(this._movementCommands, 'w')
         if (this._movementCommands.length === 0) {
           this._playerManager.idleLeft()
-          this._timerActive = false
+          this._movementTimerActive = false
         }
       } else if (event.keyCode === KeyCode.KEY_D) {
         this._movementCommands = this._removeItem(this._movementCommands, 'd')
         if (this._movementCommands.length === 0) {
           this._playerManager.idleRight()
-          this._timerActive = false
+          this._movementTimerActive = false
         }
       } else if (event.keyCode === KeyCode.KEY_S) {
         this._movementCommands = this._removeItem(this._movementCommands, 's')
         if (this._movementCommands.length === 0) {
           this._playerManager.idleLeft()
-          this._timerActive = false
+          this._movementTimerActive = false
+          this._canDigDownTimerActive = false
         }
       } else if (event.keyCode === KeyCode.KEY_A) {
         this._movementCommands = this._removeItem(this._movementCommands, 'a')
         if (this._movementCommands.length === 0) {
           this._playerManager.idleLeft()
-          this._timerActive = false
+          this._movementTimerActive = false
         }
       }
 
       // If there is still a key pressed, it triggers the player movement.
       if (this._lastMovementCommand !== this._movementCommands[this._movementCommands.length - 1]) {
         this._movePlayer()
-        this._timerActive = true
+        this._movementTimerActive = true
       }
     }
   }
@@ -230,8 +243,7 @@ export class GameSceneManager extends Component {
     // TODO: Check if velocity is to high than do damage
   }
 
-  private _belowPlayerGround() {
-    // TODO: Check if has active nodes on this._groundGrid
+  private _canDigDown(): boolean {
     const groundNodes: IGroundNode[] = []
     let validNodes = 0
 
@@ -255,7 +267,7 @@ export class GameSceneManager extends Component {
       }
     }
 
-    if (validNodes === 0) return
+    if (validNodes === 0) return false
 
     groundNodes.sort((a, b) => a.distance - b.distance)
 
@@ -273,7 +285,7 @@ export class GameSceneManager extends Component {
       }
     }
 
-    if (belowPlayerGrounds.length === 0) return
+    if (belowPlayerGrounds.length === 0) return false
 
     const h1 =
       this.player.getComponent(BoxCollider2D).size.height / 2 +
@@ -283,9 +295,12 @@ export class GameSceneManager extends Component {
       this.player.position.y + this.player.getComponent(BoxCollider2D).offset.y - belowPlayerGrounds[0].y
     )
 
-    if (Math.hypot(h1, w1) >= belowPlayerGrounds[0].distance && h2 <= h1 + 1) {
+    if (Math.hypot(h1, w1) >= belowPlayerGrounds[0].distance && h2 <= h1 + 2) {
       belowPlayerGrounds[0].node.destroy()
+      return true
     }
+
+    return false
   }
 
   private _getDistanceBetweenPoints(xA: number, yA: number, xB: number, yB: number) {

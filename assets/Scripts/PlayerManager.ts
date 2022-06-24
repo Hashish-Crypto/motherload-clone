@@ -4,7 +4,7 @@ const { ccclass } = _decorator
 
 @ccclass('PlayerManager')
 export class PlayerManager extends Component {
-  private _velocity: number = 2
+  private _velocity: number = 1.5
   private _body: RigidBody2D | null = null
   private _animation: Animation | null = null
 
@@ -27,10 +27,12 @@ export class PlayerManager extends Component {
 
   public digDownLeft() {
     this._animation.play('digDownLeft')
+    // this._body.linearVelocity = new Vec2(0, 0)
   }
 
   public digDownRight() {
     this._animation.play('digDownRight')
+    // this._body.linearVelocity = new Vec2(0, 0)
   }
 
   public moveLeft() {
