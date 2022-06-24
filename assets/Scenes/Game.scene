@@ -623,17 +623,17 @@
     "_offset": {
       "__type__": "cc.Vec2",
       "x": 0,
-      "y": -4
+      "y": -3.5
     },
     "_size": {
       "__type__": "cc.Size",
       "width": 41,
-      "height": 40
+      "height": 41
     },
     "_id": "fa1Xx6wVpIZ4NlaX2a0wQn"
   },
   {
-    "__type__": "cc.PolygonCollider2D",
+    "__type__": "cc.CircleCollider2D",
     "_name": "",
     "_objFlags": 0,
     "node": {
@@ -642,7 +642,7 @@
     "_enabled": true,
     "__prefab": null,
     "tag": 0,
-    "_group": 1,
+    "_group": 4,
     "_density": 1,
     "_sensor": false,
     "_friction": 0.2,
@@ -650,41 +650,10 @@
     "_offset": {
       "__type__": "cc.Vec2",
       "x": 0,
-      "y": 0
+      "y": -3.5
     },
-    "_points": [
-      {
-        "__type__": "cc.Vec2",
-        "x": -17.5,
-        "y": -24
-      },
-      {
-        "__type__": "cc.Vec2",
-        "x": 17.5,
-        "y": -24
-      },
-      {
-        "__type__": "cc.Vec2",
-        "x": 20.5,
-        "y": -21
-      },
-      {
-        "__type__": "cc.Vec2",
-        "x": 20.5,
-        "y": 16
-      },
-      {
-        "__type__": "cc.Vec2",
-        "x": -20.5,
-        "y": 16
-      },
-      {
-        "__type__": "cc.Vec2",
-        "x": -20.5,
-        "y": -21
-      }
-    ],
-    "_id": "b44IT2pP1MMKstH4ADKZhn"
+    "_radius": 20.5,
+    "_id": "25WLPN+mNDpYLGf7M0C4Ox"
   },
   {
     "__type__": "cc.UITransform",
