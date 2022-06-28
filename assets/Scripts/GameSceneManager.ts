@@ -64,6 +64,7 @@ export class GameSceneManager extends Component {
   private
 
   onLoad() {
+    // Generate ground.
     const tempGroundNode = instantiate(this.groundPrefab)
     const squareSide = tempGroundNode.getComponent(UITransform).width
     tempGroundNode.destroy()
@@ -133,6 +134,7 @@ export class GameSceneManager extends Component {
   }
 
   update(deltaTime: number) {
+    // If the movement key is pressed, it maintains a continuous impulse.
     if (this._playerControllerActive && this._movementCommands.length >= 1 && this._movementTimerActive) {
       this._movementTimer += deltaTime
       if (this._movementTimer >= 0.1) {
@@ -141,6 +143,7 @@ export class GameSceneManager extends Component {
       }
     }
 
+    // Periodically check if there is a ground that can be dug.
     if (this._playerControllerActive && this._movementCommands.length >= 1 && this._canDigDownTimerActive) {
       this._canDigDownTimer += deltaTime
       if (this._canDigDownTimer >= 0.25) {
@@ -190,26 +193,26 @@ export class GameSceneManager extends Component {
   private _onKeyUp(event: EventKeyboard) {
     if (this._playerControllerActive) {
       if (event.keyCode === KeyCode.KEY_W) {
-        this._movementCommands = this._removeItem(this._movementCommands, Direction.UP)
+        this._movementCommands = this._movementCommands.filter((direction) => direction !== Direction.UP)
         if (this._movementCommands.length === 0) {
           this._playerManager.idleLeft()
           this._movementTimerActive = false
         }
       } else if (event.keyCode === KeyCode.KEY_D) {
-        this._movementCommands = this._removeItem(this._movementCommands, Direction.RIGHT)
+        this._movementCommands = this._movementCommands.filter((direction) => direction !== Direction.RIGHT)
         if (this._movementCommands.length === 0) {
           this._playerManager.idleRight()
           this._movementTimerActive = false
         }
       } else if (event.keyCode === KeyCode.KEY_S) {
-        this._movementCommands = this._removeItem(this._movementCommands, Direction.DOWN)
+        this._movementCommands = this._movementCommands.filter((direction) => direction !== Direction.DOWN)
         if (this._movementCommands.length === 0) {
           this._playerManager.idleLeft()
           this._movementTimerActive = false
           this._canDigDownTimerActive = false
         }
       } else if (event.keyCode === KeyCode.KEY_A) {
-        this._movementCommands = this._removeItem(this._movementCommands, Direction.LEFT)
+        this._movementCommands = this._movementCommands.filter((direction) => direction !== Direction.LEFT)
         if (this._movementCommands.length === 0) {
           this._playerManager.idleLeft()
           this._movementTimerActive = false
@@ -222,10 +225,6 @@ export class GameSceneManager extends Component {
         this._movementTimerActive = true
       }
     }
-  }
-
-  private _removeItem(arr: Direction[], value: Direction) {
-    return arr.filter((element) => element !== value)
   }
 
   private _movePlayer() {
@@ -243,13 +242,14 @@ export class GameSceneManager extends Component {
   }
 
   private _onBeginContact(a: Collider2D, b: Collider2D) {
-    // TODO: Check if velocity is to high than do damage
+    // TODO: Check if velocity is to high, if so do damage.
   }
 
   private _canDigDown(): boolean {
     const groundNodes: IGroundNode[] = []
     let validNodes = 0
 
+    // Get all valid ground.
     for (let y = 0; y < this._groundGridHeight; y += 1) {
       for (let x = 0; x < this._groundGridWidth; x += 1) {
         if (isValid(this._groundGrid[y][x])) {
@@ -290,6 +290,7 @@ export class GameSceneManager extends Component {
 
     if (belowPlayerGrounds.length === 0) return false
 
+    // Check if the ground below is in contact with the player.
     const h1 =
       this.player.getComponent(BoxCollider2D).size.height / 2 +
       belowPlayerGrounds[0].node.getComponent(UITransform).contentSize.height / 2
@@ -297,7 +298,6 @@ export class GameSceneManager extends Component {
     const h2 = Math.abs(
       this.player.position.y + this.player.getComponent(BoxCollider2D).offset.y - belowPlayerGrounds[0].y
     )
-
     if (Math.hypot(h1, w1) >= belowPlayerGrounds[0].distance && h2 <= h1 + 2) {
       belowPlayerGrounds[0].node.destroy()
       return true
