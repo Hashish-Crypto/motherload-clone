@@ -61,7 +61,6 @@ export class GameSceneManager extends Component {
   private _movementTimerActive: boolean = false
   private _canDigDownTimer: number = 0
   private _canDigDownTimerActive: boolean = false
-  private
 
   onLoad() {
     // Generate ground.
