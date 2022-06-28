@@ -36,6 +36,7 @@ enum Direction {
   RIGHT,
   DOWN,
   LEFT,
+  NULL,
 }
 
 @ccclass('GameSceneManager')
@@ -50,16 +51,17 @@ export class GameSceneManager extends Component {
   public player: Node | null = null
 
   private _groundGrid: Node[][] = []
-  private _groundGridWidth: number = 20
-  private _groundGridHeight: number = 20
+  private _groundGridWidth: number = 30
+  private _groundGridHeight: number = 90
   private _playerControllerActive: boolean = true
-  private _movementCommands: string[] = []
-  private _lastMovementCommand: string = ''
+  private _movementCommands: Direction[] = []
+  private _lastMovementCommand: Direction = Direction.NULL
   private _playerManager: PlayerManager | null = null
   private _movementTimer: number = 0
   private _movementTimerActive: boolean = false
   private _canDigDownTimer: number = 0
   private _canDigDownTimerActive: boolean = false
+  private
 
   onLoad() {
     const tempGroundNode = instantiate(this.groundPrefab)
@@ -138,6 +140,7 @@ export class GameSceneManager extends Component {
         this._movementTimer = 0
       }
     }
+
     if (this._playerControllerActive && this._movementCommands.length >= 1 && this._canDigDownTimerActive) {
       this._canDigDownTimer += deltaTime
       if (this._canDigDownTimer >= 0.25) {
@@ -158,26 +161,26 @@ export class GameSceneManager extends Component {
 
   private _onKeyDown(event: EventKeyboard) {
     if (this._playerControllerActive) {
-      if (event.keyCode === KeyCode.KEY_W && !this._movementCommands.includes('w')) {
-        this._lastMovementCommand = 'w'
-        this._movementCommands.push('w')
+      if (event.keyCode === KeyCode.KEY_W && !this._movementCommands.includes(Direction.UP)) {
+        this._lastMovementCommand = Direction.UP
+        this._movementCommands.push(Direction.UP)
         this._movePlayer()
         this._movementTimerActive = true
-      } else if (event.keyCode === KeyCode.KEY_D && !this._movementCommands.includes('d')) {
-        this._lastMovementCommand = 'd'
-        this._movementCommands.push('d')
+      } else if (event.keyCode === KeyCode.KEY_D && !this._movementCommands.includes(Direction.RIGHT)) {
+        this._lastMovementCommand = Direction.RIGHT
+        this._movementCommands.push(Direction.RIGHT)
         this._movePlayer()
         this._movementTimerActive = true
-      } else if (event.keyCode === KeyCode.KEY_S && !this._movementCommands.includes('s')) {
-        this._lastMovementCommand = 's'
-        this._movementCommands.push('s')
+      } else if (event.keyCode === KeyCode.KEY_S && !this._movementCommands.includes(Direction.DOWN)) {
+        this._lastMovementCommand = Direction.DOWN
+        this._movementCommands.push(Direction.DOWN)
         if (this._canDigDown()) {
           this._movePlayer()
         }
         this._canDigDownTimerActive = true
-      } else if (event.keyCode === KeyCode.KEY_A && !this._movementCommands.includes('a')) {
-        this._lastMovementCommand = 'a'
-        this._movementCommands.push('a')
+      } else if (event.keyCode === KeyCode.KEY_A && !this._movementCommands.includes(Direction.LEFT)) {
+        this._lastMovementCommand = Direction.LEFT
+        this._movementCommands.push(Direction.LEFT)
         this._movePlayer()
         this._movementTimerActive = true
       }
@@ -187,26 +190,26 @@ export class GameSceneManager extends Component {
   private _onKeyUp(event: EventKeyboard) {
     if (this._playerControllerActive) {
       if (event.keyCode === KeyCode.KEY_W) {
-        this._movementCommands = this._removeItem(this._movementCommands, 'w')
+        this._movementCommands = this._removeItem(this._movementCommands, Direction.UP)
         if (this._movementCommands.length === 0) {
           this._playerManager.idleLeft()
           this._movementTimerActive = false
         }
       } else if (event.keyCode === KeyCode.KEY_D) {
-        this._movementCommands = this._removeItem(this._movementCommands, 'd')
+        this._movementCommands = this._removeItem(this._movementCommands, Direction.RIGHT)
         if (this._movementCommands.length === 0) {
           this._playerManager.idleRight()
           this._movementTimerActive = false
         }
       } else if (event.keyCode === KeyCode.KEY_S) {
-        this._movementCommands = this._removeItem(this._movementCommands, 's')
+        this._movementCommands = this._removeItem(this._movementCommands, Direction.DOWN)
         if (this._movementCommands.length === 0) {
           this._playerManager.idleLeft()
           this._movementTimerActive = false
           this._canDigDownTimerActive = false
         }
       } else if (event.keyCode === KeyCode.KEY_A) {
-        this._movementCommands = this._removeItem(this._movementCommands, 'a')
+        this._movementCommands = this._removeItem(this._movementCommands, Direction.LEFT)
         if (this._movementCommands.length === 0) {
           this._playerManager.idleLeft()
           this._movementTimerActive = false
@@ -221,19 +224,19 @@ export class GameSceneManager extends Component {
     }
   }
 
-  private _removeItem(arr: string[], value: string) {
+  private _removeItem(arr: Direction[], value: Direction) {
     return arr.filter((element) => element !== value)
   }
 
   private _movePlayer() {
     if (this._movementCommands.length >= 1) {
-      if (this._movementCommands[this._movementCommands.length - 1] === 'w') {
+      if (this._movementCommands[this._movementCommands.length - 1] === Direction.UP) {
         this._playerManager.flyLeft()
-      } else if (this._movementCommands[this._movementCommands.length - 1] === 'd') {
+      } else if (this._movementCommands[this._movementCommands.length - 1] === Direction.RIGHT) {
         this._playerManager.moveRight()
-      } else if (this._movementCommands[this._movementCommands.length - 1] === 's') {
+      } else if (this._movementCommands[this._movementCommands.length - 1] === Direction.DOWN) {
         this._playerManager.digDownLeft()
-      } else if (this._movementCommands[this._movementCommands.length - 1] === 'a') {
+      } else if (this._movementCommands[this._movementCommands.length - 1] === Direction.LEFT) {
         this._playerManager.moveLeft()
       }
     }
