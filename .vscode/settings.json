@@ -43,5 +43,6 @@
     "silverium"
   ],
   "editor.foldingMaximumRegions": 50000,
-  "files.eol": "\n"
+  "files.eol": "\n",
+  "files.insertFinalNewline": true
 }
