@@ -13,18 +13,10 @@ import {
   Collider2D,
   Vec2,
   BoxCollider2D,
-  isValid,
 } from 'cc'
 import { PlayerManager } from './PlayerManager'
 import generateGroundGrid from './lib/generateGroundGrid'
 import IGround from './types/IGround'
-
-interface IGroundNode {
-  x: number
-  y: number
-  distance: number
-  node: Node
-}
 
 enum Direction {
   UP,
@@ -116,9 +108,9 @@ export class GameSceneManager extends Component {
       } else if (event.keyCode === KeyCode.KEY_S && !this._movementCommands.includes(Direction.DOWN)) {
         this._lastMovementCommand = Direction.DOWN
         this._movementCommands.push(Direction.DOWN)
-        if (this._canDigDown()) {
-          this._movePlayer()
-        }
+        // if (this._canDigDown()) {
+        this._movePlayer()
+        // }
         this._canDigDownTimerActive = true
       } else if (event.keyCode === KeyCode.KEY_A && !this._movementCommands.includes(Direction.LEFT)) {
         this._lastMovementCommand = Direction.LEFT
@@ -173,7 +165,9 @@ export class GameSceneManager extends Component {
       } else if (this._movementCommands[this._movementCommands.length - 1] === Direction.RIGHT) {
         this._playerManager.moveRight()
       } else if (this._movementCommands[this._movementCommands.length - 1] === Direction.DOWN) {
-        this._playerManager.digDownLeft()
+        if (this._canDigDown()) {
+          this._playerManager.digDownLeft()
+        }
       } else if (this._movementCommands[this._movementCommands.length - 1] === Direction.LEFT) {
         this._playerManager.moveLeft()
       }
@@ -185,23 +179,24 @@ export class GameSceneManager extends Component {
   }
 
   private _canDigDown(): boolean {
-    const groundNodes: IGroundNode[] = []
+    const groundNodes: {
+      distance: number
+      ground: IGround
+    }[] = []
     let validNodes = 0
 
-    // Get all valid ground.
+    // Get all active ground.
     for (let y = 0; y < this._groundGridHeight; y += 1) {
       for (let x = 0; x < this._groundGridWidth; x += 1) {
-        if (isValid(this._groundGrid[y][x])) {
+        if (this._groundGrid[y][x].active) {
           groundNodes.push({
-            x: this._groundGrid[y][x].node.position.x,
-            y: this._groundGrid[y][x].node.position.y,
             distance: this._getDistanceBetweenPoints(
               this.player.position.x,
               this.player.position.y + this.player.getComponent(BoxCollider2D).offset.y,
               this._groundGrid[y][x].node.position.x,
               this._groundGrid[y][x].node.position.y
             ),
-            node: this._groundGrid[y][x].node,
+            ground: this._groundGrid[y][x],
           })
 
           validNodes += 1
@@ -214,14 +209,17 @@ export class GameSceneManager extends Component {
     groundNodes.sort((a, b) => a.distance - b.distance)
 
     // Get the 8 closest grounds to the player.
-    const belowPlayerGrounds: IGroundNode[] = []
+    const belowPlayerGrounds: {
+      distance: number
+      ground: IGround
+    }[] = []
     for (let i = 0; i < 8; i += 1) {
       if (
         this._getVectorDirection(
           this.player.position.x,
           this.player.position.y + this.player.getComponent(BoxCollider2D).offset.y,
-          groundNodes[i].x,
-          groundNodes[i].y
+          groundNodes[i].ground.node.position.x,
+          groundNodes[i].ground.node.position.y
         ) === Direction.DOWN
       ) {
         belowPlayerGrounds.push(groundNodes[i])
@@ -233,19 +231,23 @@ export class GameSceneManager extends Component {
     // Check if the ground below is in contact with the player.
     const h1 =
       this.player.getComponent(BoxCollider2D).size.height / 2 +
-      belowPlayerGrounds[0].node.getComponent(UITransform).contentSize.height / 2
-    const w1 = belowPlayerGrounds[0].node.getComponent(UITransform).contentSize.width / 2
+      belowPlayerGrounds[0].ground.node.getComponent(UITransform).contentSize.height / 2
+    const w1 = belowPlayerGrounds[0].ground.node.getComponent(UITransform).contentSize.width / 2
     const h2 = Math.abs(
-      this.player.position.y + this.player.getComponent(BoxCollider2D).offset.y - belowPlayerGrounds[0].y
+      this.player.position.y +
+        this.player.getComponent(BoxCollider2D).offset.y -
+        belowPlayerGrounds[0].ground.node.position.y
     )
-    if (Math.hypot(h1, w1) >= belowPlayerGrounds[0].distance && h2 <= h1 + 2) {
-      if (this._groundHardinessTimer >= this._groundHardiness) {
-        belowPlayerGrounds[0].node.destroy()
+    if (Math.hypot(h1, w1) >= belowPlayerGrounds[0].distance && h2 <= h1 + 2 && belowPlayerGrounds[0].ground.canBeDug) {
+      if (this._groundHardinessTimer >= belowPlayerGrounds[0].ground.hardiness) {
+        belowPlayerGrounds[0].ground.active = false
+        belowPlayerGrounds[0].ground.node.destroy()
         this._groundHardinessTimer = 0
       }
       return true
     }
 
+    this._playerManager.idleLeft()
     return false
   }
 

@@ -27,12 +27,10 @@ export class PlayerManager extends Component {
 
   public digDownLeft() {
     this._animation.play('digDownLeft')
-    // this._body.linearVelocity = new Vec2(0, 0)
   }
 
   public digDownRight() {
     this._animation.play('digDownRight')
-    // this._body.linearVelocity = new Vec2(0, 0)
   }
 
   public moveLeft() {
