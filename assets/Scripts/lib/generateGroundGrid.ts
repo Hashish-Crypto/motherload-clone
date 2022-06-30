@@ -1,16 +1,13 @@
-import {
-  instantiate,
-  Prefab,
-  UITransform,
-  resources,  
-  randomRangeInt,
-  Node,
-  SpriteFrame,
-  Sprite
-} from 'cc'
+import { instantiate, Prefab, UITransform, resources, randomRangeInt, Node, SpriteFrame, Sprite } from 'cc'
 import IGround from '../types/IGround'
 
-const generateGroundGrid = (groundPrefab: Prefab, groundGridWidth: number, groundGridHeight: number, groundGrid: IGround[][], groundRef: Node) => {  
+const generateGroundGrid = (
+  groundPrefab: Prefab,
+  groundGridWidth: number,
+  groundGridHeight: number,
+  groundGrid: IGround[][],
+  groundRef: Node
+) => {
   const tempGroundNode = instantiate(groundPrefab)
   const squareSide = tempGroundNode.getComponent(UITransform).width
   tempGroundNode.destroy()
@@ -27,7 +24,7 @@ const generateGroundGrid = (groundPrefab: Prefab, groundGridWidth: number, groun
         canBeDug: true,
         canBeExploded: true,
         price: 0,
-        hardiness: null
+        hardiness: null,
       }
       groundGrid[y][x].node.setPosition(x * squareSide - gridWidth, y * squareSide - gridHeight)
 
