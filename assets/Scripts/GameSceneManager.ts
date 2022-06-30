@@ -44,7 +44,6 @@ export class GameSceneManager extends Component {
   private _movementTimerActive: boolean = false
   private _canDigTimer: number = 0
   private _canDigTimerActive: boolean = false
-  private _groundHardiness: number = 1
   private _groundHardinessTimer: number = 0
 
   onLoad() {
@@ -83,8 +82,10 @@ export class GameSceneManager extends Component {
           this._playerManager.digDownLeft()
         } else if (this._lastMovementCommand === Direction.LEFT && this._canDig(Direction.LEFT)) {
           this._playerManager.digLeft()
+        } else if (this._lastMovementCommand === Direction.RIGHT && this._canDig(Direction.RIGHT)) {
+          this._playerManager.digRight()
         }
-        this._movementTimer = 0
+        this._canDigTimer = 0
       }
     }
   }
@@ -118,6 +119,7 @@ export class GameSceneManager extends Component {
         if (this._movementCommands.length === 0) {
           this._playerManager.idleLeft()
           this._movementTimerActive = false
+          this._groundHardinessTimer = 0
         }
       } else if (event.keyCode === KeyCode.KEY_D) {
         this._movementCommands = this._movementCommands.filter((direction) => direction !== Direction.RIGHT)
@@ -125,6 +127,7 @@ export class GameSceneManager extends Component {
           this._playerManager.idleRight()
           this._movementTimerActive = false
           this._canDigTimerActive = false
+          this._groundHardinessTimer = 0
         }
       } else if (event.keyCode === KeyCode.KEY_S) {
         this._movementCommands = this._movementCommands.filter((direction) => direction !== Direction.DOWN)
@@ -132,6 +135,7 @@ export class GameSceneManager extends Component {
           this._playerManager.idleLeft()
           this._movementTimerActive = false
           this._canDigTimerActive = false
+          this._groundHardinessTimer = 0
         }
       } else if (event.keyCode === KeyCode.KEY_A) {
         this._movementCommands = this._movementCommands.filter((direction) => direction !== Direction.LEFT)
@@ -139,6 +143,7 @@ export class GameSceneManager extends Component {
           this._playerManager.idleLeft()
           this._movementTimerActive = false
           this._canDigTimerActive = false
+          this._groundHardinessTimer = 0
         }
       }
 
@@ -155,7 +160,12 @@ export class GameSceneManager extends Component {
         this._playerManager.flyLeft()
         this._movementTimerActive = true
       } else if (this._movementCommands[this._movementCommands.length - 1] === Direction.RIGHT) {
-        this._playerManager.moveRight()
+        if (this._canDig(Direction.RIGHT)) {
+          this._playerManager.digRight()
+          this._canDigTimerActive = true
+        } else {
+          this._playerManager.moveRight()
+        }
         this._movementTimerActive = true
       } else if (this._movementCommands[this._movementCommands.length - 1] === Direction.DOWN) {
         if (this._canDig(Direction.DOWN)) {
@@ -281,8 +291,6 @@ export class GameSceneManager extends Component {
         this.player.getComponent(BoxCollider2D).size.width / 2 +
         closestToPlayerGrounds[0].ground.node.getComponent(UITransform).contentSize.width / 2
       const w2 = Math.abs(this.player.position.x - closestToPlayerGrounds[0].ground.node.position.x)
-      // console.log('px:', this.player.position.x, 'gx:', closestToPlayerGrounds[0].ground.node.position.x)
-      // console.log('w1:', w1, 'w2:', w2)
       if (closestToPlayerGrounds[0].ground.canBeDug && w2 <= w1 + 1) {
         if (this._groundHardinessTimer >= closestToPlayerGrounds[0].ground.hardiness) {
           closestToPlayerGrounds[0].ground.active = false
@@ -293,6 +301,40 @@ export class GameSceneManager extends Component {
       }
 
       this._playerManager.idleLeft()
+      return false
+    }
+
+    if (direction === Direction.RIGHT) {
+      // Get the 8 closest grounds to the player.
+      for (let i = 0; i < 8; i += 1) {
+        if (
+          getVectorDirection(
+            this.player.position.x,
+            this.player.position.y + this.player.getComponent(BoxCollider2D).offset.y,
+            groundNodes[i].ground.node.position.x,
+            groundNodes[i].ground.node.position.y
+          ) === Direction.RIGHT
+        ) {
+          closestToPlayerGrounds.push(groundNodes[i])
+        }
+      }
+
+      if (closestToPlayerGrounds.length === 0) return false
+      // Check if the right ground is in contact with the player.
+      const w1 =
+        this.player.getComponent(BoxCollider2D).size.width / 2 +
+        closestToPlayerGrounds[0].ground.node.getComponent(UITransform).contentSize.width / 2
+      const w2 = Math.abs(this.player.position.x - closestToPlayerGrounds[0].ground.node.position.x)
+      if (closestToPlayerGrounds[0].ground.canBeDug && w2 <= w1 + 1) {
+        if (this._groundHardinessTimer >= closestToPlayerGrounds[0].ground.hardiness) {
+          closestToPlayerGrounds[0].ground.active = false
+          closestToPlayerGrounds[0].ground.node.destroy()
+          this._groundHardinessTimer = 0
+        }
+        return true
+      }
+
+      this._playerManager.idleRight()
       return false
     }
 
