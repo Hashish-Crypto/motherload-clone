@@ -1,11 +1,7 @@
 import { Node } from 'cc'
+import type IGroundItem from './IGroundItem'
 
-export default interface IGround {
+export default interface IGround extends IGroundItem {
   node: Node
   active: boolean
-  name: string | null
-  canBeDug: boolean
-  canBeExploded: boolean
-  hardiness: number | null
-  price: number
 }

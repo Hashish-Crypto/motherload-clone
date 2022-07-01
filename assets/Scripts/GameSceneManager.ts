@@ -17,7 +17,7 @@ import { PlayerManager } from './PlayerManager'
 import generateGroundGrid from './lib/generateGroundGrid'
 import getDistanceBetweenPoints from './lib/getDistanceBetweenPoints'
 import getVectorDirection from './lib/getVectorDirection'
-import IGround from './types/IGround'
+import type IGround from './types/IGround'
 import Direction from './enums/Direction'
 
 const { ccclass, property } = _decorator
@@ -34,8 +34,8 @@ export class GameSceneManager extends Component {
   public player: Node | null = null
 
   private _groundGrid: IGround[][] = []
-  private _groundGridWidth: number = 30
-  private _groundGridHeight: number = 90
+  private _groundGridWidth: number = 50
+  private _groundGridHeight: number = 100
   private _playerControllerActive: boolean = true
   private _movementCommands: Direction[] = []
   private _lastMovementCommand: Direction = Direction.NULL
