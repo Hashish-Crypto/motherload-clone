@@ -4,6 +4,7 @@ const { ccclass } = _decorator
 
 @ccclass('PlayerManager')
 export class PlayerManager extends Component {
+  public controllerActive: boolean = true
   private _velocity: number = 1.5
   private _body: RigidBody2D | null = null
   private _animation: Animation | null = null
@@ -16,12 +17,16 @@ export class PlayerManager extends Component {
   // update(deltaTime: number) {}
 
   public flyLeft() {
-    this._body.applyLinearImpulseToCenter(new Vec2(0, this._velocity * 2), true)
+    if (this._body.linearVelocity.y < this._velocity * 4) {
+      this._body.applyLinearImpulseToCenter(new Vec2(0, this._velocity * 2), true)
+    }
     this._animation.play('flyLeft')
   }
 
   public flyRight() {
-    this._body.applyLinearImpulseToCenter(new Vec2(0, this._velocity * 2), true)
+    if (this._body.linearVelocity.y < this._velocity * 4) {
+      this._body.applyLinearImpulseToCenter(new Vec2(0, this._velocity * 2), true)
+    }
     this._animation.play('flyRight')
   }
 
@@ -34,12 +39,19 @@ export class PlayerManager extends Component {
   }
 
   public moveLeft() {
-    this._body.applyLinearImpulseToCenter(new Vec2(-this._velocity, 0), true)
+    console.log(this._body.linearVelocity.x)
+    console.log(-this._velocity * 4)
+    if (this._body.linearVelocity.x > -this._velocity * 4) {
+      this._body.applyLinearImpulseToCenter(new Vec2(-this._velocity, 0), true)
+    }
     this._animation.play('moveLeft')
   }
 
   public moveRight() {
-    this._body.applyLinearImpulseToCenter(new Vec2(this._velocity, 0), true)
+    console.log(this._body.linearVelocity.x)
+    if (this._body.linearVelocity.x < this._velocity * 4) {
+      this._body.applyLinearImpulseToCenter(new Vec2(this._velocity, 0), true)
+    }
     this._animation.play('moveRight')
   }
 

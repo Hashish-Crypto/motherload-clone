@@ -91,7 +91,7 @@
       "__uuid__": "c74a2324-6d93-44e1-b516-4960c3965f56",
       "__expectedType__": "cc.Prefab"
     },
-    "player": {
+    "playerNode": {
       "__id__": 12
     },
     "_id": "eaqp6BH75LcaPGOdcwBipU"
