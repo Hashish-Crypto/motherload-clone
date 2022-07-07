@@ -11,7 +11,7 @@ const GroundItems = {
   grass: {
     name: 'grass',
     canBeDug: true,
-    hardiness: 1,
+    hardiness: 0.9,
     canBeExploded: true,
     damage: null,
     price: null,
@@ -20,7 +20,7 @@ const GroundItems = {
   ground: {
     name: 'ground',
     canBeDug: true,
-    hardiness: 1,
+    hardiness: 0.9,
     canBeExploded: true,
     damage: null,
     price: null,
@@ -29,7 +29,7 @@ const GroundItems = {
   groundWithGas: {
     name: 'ground',
     canBeDug: true,
-    hardiness: 1,
+    hardiness: 0.9,
     canBeExploded: true,
     damage: 10,
     price: null,
@@ -47,7 +47,7 @@ const GroundItems = {
   lava: {
     name: 'lava',
     canBeDug: true,
-    hardiness: 3,
+    hardiness: 2.8,
     canBeExploded: true,
     damage: 20,
     price: null,
@@ -56,7 +56,7 @@ const GroundItems = {
   ironium: {
     name: 'ironium',
     canBeDug: true,
-    hardiness: 1.5,
+    hardiness: 1.3,
     canBeExploded: true,
     damage: null,
     price: 30,
@@ -65,7 +65,7 @@ const GroundItems = {
   bronzium: {
     name: 'bronzium',
     canBeDug: true,
-    hardiness: 2,
+    hardiness: 1.8,
     canBeExploded: true,
     damage: null,
     price: 60,
@@ -74,7 +74,7 @@ const GroundItems = {
   silverium: {
     name: 'silverium',
     canBeDug: true,
-    hardiness: 2.5,
+    hardiness: 2.3,
     canBeExploded: true,
     damage: null,
     price: 100,
@@ -83,7 +83,7 @@ const GroundItems = {
   goldium: {
     name: 'goldium',
     canBeDug: true,
-    hardiness: 3,
+    hardiness: 2.8,
     canBeExploded: true,
     damage: null,
     price: 250,
@@ -92,7 +92,7 @@ const GroundItems = {
   platinium: {
     name: 'platinium',
     canBeDug: true,
-    hardiness: 3.5,
+    hardiness: 3.3,
     canBeExploded: true,
     damage: null,
     price: 750,
@@ -101,7 +101,7 @@ const GroundItems = {
   einsteinium: {
     name: 'einsteinium',
     canBeDug: true,
-    hardiness: 4,
+    hardiness: 3.8,
     canBeExploded: true,
     damage: null,
     price: 2000,
@@ -110,7 +110,7 @@ const GroundItems = {
   emerald: {
     name: 'emerald',
     canBeDug: true,
-    hardiness: 4.5,
+    hardiness: 4.3,
     canBeExploded: true,
     damage: null,
     price: 5000,
@@ -119,7 +119,7 @@ const GroundItems = {
   ruby: {
     name: 'ruby',
     canBeDug: true,
-    hardiness: 5,
+    hardiness: 4.8,
     canBeExploded: true,
     damage: null,
     price: 20000,
@@ -128,7 +128,7 @@ const GroundItems = {
   diamond: {
     name: 'diamond',
     canBeDug: true,
-    hardiness: 5.5,
+    hardiness: 5.3,
     canBeExploded: true,
     damage: null,
     price: 100000,
@@ -137,7 +137,7 @@ const GroundItems = {
   amazonite: {
     name: 'amazonite',
     canBeDug: true,
-    hardiness: 6,
+    hardiness: 5.8,
     canBeExploded: true,
     damage: null,
     price: 100000,
@@ -146,7 +146,7 @@ const GroundItems = {
   dinosaurBones: {
     name: 'dinosaur_bones',
     canBeDug: true,
-    hardiness: 2,
+    hardiness: 1.8,
     canBeExploded: true,
     damage: null,
     price: 1000,
@@ -155,7 +155,7 @@ const GroundItems = {
   treasure: {
     name: 'treasure',
     canBeDug: true,
-    hardiness: 2,
+    hardiness: 1.8,
     canBeExploded: true,
     damage: null,
     price: 5000,
@@ -164,7 +164,7 @@ const GroundItems = {
   martianSkeleton: {
     name: 'martian_skeleton',
     canBeDug: true,
-    hardiness: 2,
+    hardiness: 1.8,
     canBeExploded: true,
     damage: null,
     price: 10000,
@@ -173,7 +173,7 @@ const GroundItems = {
   religiousArtifact: {
     name: 'religious_artifact',
     canBeDug: true,
-    hardiness: 2,
+    hardiness: 1.8,
     canBeExploded: true,
     damage: null,
     price: 10000,
