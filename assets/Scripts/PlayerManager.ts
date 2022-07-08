@@ -61,8 +61,6 @@ export class PlayerManager extends Component {
   }
 
   public moveLeft() {
-    console.log(this._body.linearVelocity.x)
-    console.log(-this._velocity * 4)
     if (this._body.linearVelocity.x > -this._velocity * 4) {
       this._body.applyLinearImpulseToCenter(new Vec2(-this._velocity, 0), true)
     }
@@ -70,7 +68,6 @@ export class PlayerManager extends Component {
   }
 
   public moveRight() {
-    console.log(this._body.linearVelocity.x)
     if (this._body.linearVelocity.x < this._velocity * 4) {
       this._body.applyLinearImpulseToCenter(new Vec2(this._velocity, 0), true)
     }
