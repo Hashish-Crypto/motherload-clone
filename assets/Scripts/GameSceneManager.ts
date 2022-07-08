@@ -151,6 +151,8 @@ export class GameSceneManager extends Component {
   // }
 
   public canDig(direction: Direction): boolean {
+    if (this._player.body.linearVelocity.y >= 0.5 || this._player.body.linearVelocity.y < -0.5) return false
+
     const groundNodes: {
       distance: number
       ground: IGround

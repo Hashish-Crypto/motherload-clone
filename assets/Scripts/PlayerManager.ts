@@ -16,14 +16,14 @@ export class PlayerManager extends Component {
   public movementTimer: number = 0
   public canDigTimerActive: boolean = false
   public canDigTimer: number = 0
+  public body: RigidBody2D | null = null
   private _gameSceneManager: GameSceneManager | null = null
   private _velocity: number = 1.5
-  private _body: RigidBody2D | null = null
   private _animation: Animation | null = null
 
   onLoad() {
     this._gameSceneManager = this.gameSceneManagerNode.getComponent(GameSceneManager)
-    this._body = this.node.getComponent(RigidBody2D)
+    this.body = this.node.getComponent(RigidBody2D)
     this._animation = this.node.getComponent(Animation)
   }
 
@@ -39,15 +39,15 @@ export class PlayerManager extends Component {
   }
 
   public flyLeft() {
-    if (this._body.linearVelocity.y < this._velocity * 4) {
-      this._body.applyLinearImpulseToCenter(new Vec2(0, this._velocity * 2), true)
+    if (this.body.linearVelocity.y < this._velocity * 4) {
+      this.body.applyLinearImpulseToCenter(new Vec2(0, this._velocity * 2), true)
     }
     this._animation.play('flyLeft')
   }
 
   public flyRight() {
-    if (this._body.linearVelocity.y < this._velocity * 4) {
-      this._body.applyLinearImpulseToCenter(new Vec2(0, this._velocity * 2), true)
+    if (this.body.linearVelocity.y < this._velocity * 4) {
+      this.body.applyLinearImpulseToCenter(new Vec2(0, this._velocity * 2), true)
     }
     this._animation.play('flyRight')
   }
@@ -61,26 +61,26 @@ export class PlayerManager extends Component {
   }
 
   public moveLeft() {
-    if (this._body.linearVelocity.x > -this._velocity * 4) {
-      this._body.applyLinearImpulseToCenter(new Vec2(-this._velocity, 0), true)
+    if (this.body.linearVelocity.x > -this._velocity * 4) {
+      this.body.applyLinearImpulseToCenter(new Vec2(-this._velocity, 0), true)
     }
     this._animation.play('moveLeft')
   }
 
   public moveRight() {
-    if (this._body.linearVelocity.x < this._velocity * 4) {
-      this._body.applyLinearImpulseToCenter(new Vec2(this._velocity, 0), true)
+    if (this.body.linearVelocity.x < this._velocity * 4) {
+      this.body.applyLinearImpulseToCenter(new Vec2(this._velocity, 0), true)
     }
     this._animation.play('moveRight')
   }
 
   public digLeft() {
-    this._body.linearVelocity = new Vec2(0, 0)
+    this.body.linearVelocity = new Vec2(0, 0)
     this._animation.play('digLeft')
   }
 
   public digRight() {
-    this._body.linearVelocity = new Vec2(0, 0)
+    this.body.linearVelocity = new Vec2(0, 0)
     this._animation.play('digRight')
   }
 
