@@ -530,7 +530,7 @@
     "_priority": 1073741824,
     "_fov": 45,
     "_fovAxis": 0,
-    "_orthoHeight": 320,
+    "_orthoHeight": 496.2025316455696,
     "_near": 0,
     "_far": 2000,
     "_color": {
@@ -685,6 +685,9 @@
     },
     "_enabled": true,
     "__prefab": null,
+    "gameSceneManagerNode": {
+      "__id__": 2
+    },
     "_id": "38rDM6rItELrCZR073mOPe"
   },
   {

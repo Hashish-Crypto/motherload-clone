@@ -1,20 +1,42 @@
-import { _decorator, Component, RigidBody2D, Animation, Vec2 } from 'cc'
+import { _decorator, Component, RigidBody2D, Animation, Vec2, Node } from 'cc'
+import { GameSceneManager } from './GameSceneManager'
+import Direction from './enums/Direction'
 
-const { ccclass } = _decorator
+const { ccclass, property } = _decorator
 
 @ccclass('PlayerManager')
 export class PlayerManager extends Component {
+  @property({ type: Node })
+  public gameSceneManagerNode: Node | null = null
+
   public controllerActive: boolean = true
+  public movementCommands: Direction[] = []
+  public lastMovementCommand: Direction = Direction.NULL
+  public movementTimerActive: boolean = false
+  public movementTimer: number = 0
+  public canDigTimerActive: boolean = false
+  public canDigTimer: number = 0
+  private _gameSceneManager: GameSceneManager | null = null
   private _velocity: number = 1.5
   private _body: RigidBody2D | null = null
   private _animation: Animation | null = null
 
   onLoad() {
+    this._gameSceneManager = this.gameSceneManagerNode.getComponent(GameSceneManager)
     this._body = this.node.getComponent(RigidBody2D)
     this._animation = this.node.getComponent(Animation)
   }
 
-  // update(deltaTime: number) {}
+  update(deltaTime: number) {
+    // If the movement key is pressed, it maintains a continuous impulse.
+    if (this.controllerActive && this.movementCommands.length >= 1 && this.movementTimerActive) {
+      this.movementTimer += deltaTime
+      if (this.movementTimer >= 0.1) {
+        this.move()
+        this.movementTimer = 0
+      }
+    }
+  }
 
   public flyLeft() {
     if (this._body.linearVelocity.y < this._velocity * 4) {
@@ -71,5 +93,38 @@ export class PlayerManager extends Component {
 
   public idleRight() {
     this._animation.play('idleRight')
+  }
+
+  public move() {
+    if (this.movementCommands.length >= 1) {
+      if (this.movementCommands[this.movementCommands.length - 1] === Direction.UP) {
+        this.flyLeft()
+        this.movementTimerActive = true
+      } else if (this.movementCommands[this.movementCommands.length - 1] === Direction.RIGHT) {
+        if (this._gameSceneManager.canDig(Direction.RIGHT)) {
+          this.digRight()
+          this.canDigTimerActive = true
+        } else {
+          this.moveRight()
+        }
+        this.movementTimerActive = true
+      } else if (this.movementCommands[this.movementCommands.length - 1] === Direction.DOWN) {
+        if (this._gameSceneManager.canDig(Direction.DOWN)) {
+          this.digDownLeft()
+          this.canDigTimerActive = true
+        } else {
+          this.idleLeft()
+        }
+        this.movementTimerActive = true
+      } else if (this.movementCommands[this.movementCommands.length - 1] === Direction.LEFT) {
+        if (this._gameSceneManager.canDig(Direction.LEFT)) {
+          this.digLeft()
+          this.canDigTimerActive = true
+        } else {
+          this.moveLeft()
+        }
+        this.movementTimerActive = true
+      }
+    }
   }
 }

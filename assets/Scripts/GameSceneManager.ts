@@ -36,14 +36,8 @@ export class GameSceneManager extends Component {
   private _groundGrid: IGround[][] = []
   private _groundGridWidth: number = 50
   private _groundGridHeight: number = 100
-  private _movementCommands: Direction[] = []
-  private _lastMovementCommand: Direction = Direction.NULL
-  private _player: PlayerManager | null = null
-  private _movementTimer: number = 0
-  private _movementTimerActive: boolean = false
-  private _canDigTimer: number = 0
-  private _canDigTimerActive: boolean = false
   private _groundHardinessTimer: number = 0
+  private _player: PlayerManager | null = null
 
   onLoad() {
     // Generate ground.
@@ -63,50 +57,41 @@ export class GameSceneManager extends Component {
   }
 
   update(deltaTime: number) {
-    // If the movement key is pressed, it maintains a continuous impulse.
-    if (this._player.controllerActive && this._movementCommands.length >= 1 && this._movementTimerActive) {
-      this._movementTimer += deltaTime
-      if (this._movementTimer >= 0.1) {
-        this._movePlayer()
-        this._movementTimer = 0
-      }
-    }
-
     // Periodically check if there is a ground that can be dug.
-    if (this._player.controllerActive && this._movementCommands.length >= 1 && this._canDigTimerActive) {
-      this._canDigTimer += deltaTime
+    if (this._player.controllerActive && this._player.movementCommands.length >= 1 && this._player.canDigTimerActive) {
+      this._player.canDigTimer += deltaTime
       this._groundHardinessTimer += deltaTime
-      if (this._canDigTimer >= 0.2) {
-        if (this._lastMovementCommand === Direction.DOWN && this._canDig(Direction.DOWN)) {
+      if (this._player.canDigTimer >= 0.2) {
+        if (this._player.lastMovementCommand === Direction.DOWN && this.canDig(Direction.DOWN)) {
           this._player.digDownLeft()
-        } else if (this._lastMovementCommand === Direction.LEFT && this._canDig(Direction.LEFT)) {
+        } else if (this._player.lastMovementCommand === Direction.LEFT && this.canDig(Direction.LEFT)) {
           this._player.digLeft()
-        } else if (this._lastMovementCommand === Direction.RIGHT && this._canDig(Direction.RIGHT)) {
+        } else if (this._player.lastMovementCommand === Direction.RIGHT && this.canDig(Direction.RIGHT)) {
           this._player.digRight()
         }
-        this._canDigTimer = 0
+        this._player.canDigTimer = 0
       }
     }
   }
 
   private _onKeyDown(event: EventKeyboard) {
     if (this._player.controllerActive) {
-      if (event.keyCode === KeyCode.KEY_W && !this._movementCommands.includes(Direction.UP)) {
-        this._lastMovementCommand = Direction.UP
-        this._movementCommands.push(Direction.UP)
-        this._movePlayer()
-      } else if (event.keyCode === KeyCode.KEY_D && !this._movementCommands.includes(Direction.RIGHT)) {
-        this._lastMovementCommand = Direction.RIGHT
-        this._movementCommands.push(Direction.RIGHT)
-        this._movePlayer()
-      } else if (event.keyCode === KeyCode.KEY_S && !this._movementCommands.includes(Direction.DOWN)) {
-        this._lastMovementCommand = Direction.DOWN
-        this._movementCommands.push(Direction.DOWN)
-        this._movePlayer()
-      } else if (event.keyCode === KeyCode.KEY_A && !this._movementCommands.includes(Direction.LEFT)) {
-        this._lastMovementCommand = Direction.LEFT
-        this._movementCommands.push(Direction.LEFT)
-        this._movePlayer()
+      if (event.keyCode === KeyCode.KEY_W && !this._player.movementCommands.includes(Direction.UP)) {
+        this._player.lastMovementCommand = Direction.UP
+        this._player.movementCommands.push(Direction.UP)
+        this._player.move()
+      } else if (event.keyCode === KeyCode.KEY_D && !this._player.movementCommands.includes(Direction.RIGHT)) {
+        this._player.lastMovementCommand = Direction.RIGHT
+        this._player.movementCommands.push(Direction.RIGHT)
+        this._player.move()
+      } else if (event.keyCode === KeyCode.KEY_S && !this._player.movementCommands.includes(Direction.DOWN)) {
+        this._player.lastMovementCommand = Direction.DOWN
+        this._player.movementCommands.push(Direction.DOWN)
+        this._player.move()
+      } else if (event.keyCode === KeyCode.KEY_A && !this._player.movementCommands.includes(Direction.LEFT)) {
+        this._player.lastMovementCommand = Direction.LEFT
+        this._player.movementCommands.push(Direction.LEFT)
+        this._player.move()
       }
     }
   }
@@ -114,74 +99,49 @@ export class GameSceneManager extends Component {
   private _onKeyUp(event: EventKeyboard) {
     if (this._player.controllerActive) {
       if (event.keyCode === KeyCode.KEY_W) {
-        this._movementCommands = this._movementCommands.filter((direction) => direction !== Direction.UP)
-        if (this._movementCommands.length === 0) {
+        this._player.movementCommands = this._player.movementCommands.filter((direction) => direction !== Direction.UP)
+        if (this._player.movementCommands.length === 0) {
           this._player.idleLeft()
-          this._movementTimerActive = false
+          this._player.movementTimerActive = false
           this._groundHardinessTimer = 0
         }
       } else if (event.keyCode === KeyCode.KEY_D) {
-        this._movementCommands = this._movementCommands.filter((direction) => direction !== Direction.RIGHT)
-        if (this._movementCommands.length === 0) {
+        this._player.movementCommands = this._player.movementCommands.filter(
+          (direction) => direction !== Direction.RIGHT
+        )
+        if (this._player.movementCommands.length === 0) {
           this._player.idleRight()
-          this._movementTimerActive = false
-          this._canDigTimerActive = false
+          this._player.movementTimerActive = false
+          this._player.canDigTimerActive = false
           this._groundHardinessTimer = 0
         }
       } else if (event.keyCode === KeyCode.KEY_S) {
-        this._movementCommands = this._movementCommands.filter((direction) => direction !== Direction.DOWN)
-        if (this._movementCommands.length === 0) {
+        this._player.movementCommands = this._player.movementCommands.filter(
+          (direction) => direction !== Direction.DOWN
+        )
+        if (this._player.movementCommands.length === 0) {
           this._player.idleLeft()
-          this._movementTimerActive = false
-          this._canDigTimerActive = false
+          this._player.movementTimerActive = false
+          this._player.canDigTimerActive = false
           this._groundHardinessTimer = 0
         }
       } else if (event.keyCode === KeyCode.KEY_A) {
-        this._movementCommands = this._movementCommands.filter((direction) => direction !== Direction.LEFT)
-        if (this._movementCommands.length === 0) {
+        this._player.movementCommands = this._player.movementCommands.filter(
+          (direction) => direction !== Direction.LEFT
+        )
+        if (this._player.movementCommands.length === 0) {
           this._player.idleLeft()
-          this._movementTimerActive = false
-          this._canDigTimerActive = false
+          this._player.movementTimerActive = false
+          this._player.canDigTimerActive = false
           this._groundHardinessTimer = 0
         }
       }
 
       // If there is still a key pressed, it triggers the player movement.
-      if (this._lastMovementCommand !== this._movementCommands[this._movementCommands.length - 1]) {
-        this._movePlayer()
-      }
-    }
-  }
-
-  private _movePlayer() {
-    if (this._movementCommands.length >= 1) {
-      if (this._movementCommands[this._movementCommands.length - 1] === Direction.UP) {
-        this._player.flyLeft()
-        this._movementTimerActive = true
-      } else if (this._movementCommands[this._movementCommands.length - 1] === Direction.RIGHT) {
-        if (this._canDig(Direction.RIGHT)) {
-          this._player.digRight()
-          this._canDigTimerActive = true
-        } else {
-          this._player.moveRight()
-        }
-        this._movementTimerActive = true
-      } else if (this._movementCommands[this._movementCommands.length - 1] === Direction.DOWN) {
-        if (this._canDig(Direction.DOWN)) {
-          this._player.digDownLeft()
-          this._canDigTimerActive = true
-        } else {
-          this._player.idleLeft()
-        }
-        this._movementTimerActive = true
-      } else if (this._movementCommands[this._movementCommands.length - 1] === Direction.LEFT) {
-        if (this._canDig(Direction.LEFT)) {
-          this._player.digLeft()
-          this._canDigTimerActive = true
-        } else {
-          this._player.moveLeft()
-        }
-        this._movementTimerActive = true
+      if (
+        this._player.lastMovementCommand !== this._player.movementCommands[this._player.movementCommands.length - 1]
+      ) {
+        this._player.move()
       }
     }
   }
@@ -190,7 +150,7 @@ export class GameSceneManager extends Component {
   // TODO: Check if velocity is to high, if so do damage.
   // }
 
-  private _canDig(direction: Direction): boolean {
+  public canDig(direction: Direction): boolean {
     const groundNodes: {
       distance: number
       ground: IGround
