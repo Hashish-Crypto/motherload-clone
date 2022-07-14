@@ -17,6 +17,8 @@ import { PlayerManager } from './PlayerManager'
 import generateGroundGrid from './lib/generateGroundGrid'
 import getDistanceBetweenPoints from './lib/getDistanceBetweenPoints'
 import getVectorDirection from './lib/getVectorDirection'
+import calculateDamage from './lib/calculateDamage'
+import addItemToCargoBay from './lib/addItemToCargoBay'
 import type IGround from './types/IGround'
 import Direction from './enums/Direction'
 
@@ -151,6 +153,7 @@ export class GameSceneManager extends Component {
   // }
 
   public canDig(direction: Direction): boolean {
+    // Can't dig while it's falling.
     if (this._player.body.linearVelocity.y >= 0.5 || this._player.body.linearVelocity.y < -0.5) return false
 
     const groundNodes: {
@@ -219,10 +222,14 @@ export class GameSceneManager extends Component {
         Math.hypot(h1, w1) >= closestToPlayerGrounds[0].distance &&
         h2 <= h1 + 2
       ) {
-        if (this._groundHardinessTimer >= closestToPlayerGrounds[0].ground.hardiness) {
+        if (
+          this._groundHardinessTimer >=
+          closestToPlayerGrounds[0].ground.hardiness * this._player.attributes.drillSpeed
+        ) {
           closestToPlayerGrounds[0].ground.active = false
           closestToPlayerGrounds[0].ground.node.destroy()
           this._groundHardinessTimer = 0
+          addItemToCargoBay(closestToPlayerGrounds[0].ground, this._player)
         }
         return true
       }
@@ -253,10 +260,14 @@ export class GameSceneManager extends Component {
         closestToPlayerGrounds[0].ground.node.getComponent(UITransform).contentSize.width / 2
       const w2 = Math.abs(this._player.node.position.x - closestToPlayerGrounds[0].ground.node.position.x)
       if (closestToPlayerGrounds[0].ground.canBeDug && w2 <= w1 + 1) {
-        if (this._groundHardinessTimer >= closestToPlayerGrounds[0].ground.hardiness) {
+        if (
+          this._groundHardinessTimer >=
+          closestToPlayerGrounds[0].ground.hardiness * this._player.attributes.drillSpeed
+        ) {
           closestToPlayerGrounds[0].ground.active = false
           closestToPlayerGrounds[0].ground.node.destroy()
           this._groundHardinessTimer = 0
+          addItemToCargoBay(closestToPlayerGrounds[0].ground, this._player)
         }
         return true
       }
@@ -287,10 +298,15 @@ export class GameSceneManager extends Component {
         closestToPlayerGrounds[0].ground.node.getComponent(UITransform).contentSize.width / 2
       const w2 = Math.abs(this._player.node.position.x - closestToPlayerGrounds[0].ground.node.position.x)
       if (closestToPlayerGrounds[0].ground.canBeDug && w2 <= w1 + 1) {
-        if (this._groundHardinessTimer >= closestToPlayerGrounds[0].ground.hardiness) {
+        if (
+          this._groundHardinessTimer >=
+          closestToPlayerGrounds[0].ground.hardiness * this._player.attributes.drillSpeed
+        ) {
           closestToPlayerGrounds[0].ground.active = false
           closestToPlayerGrounds[0].ground.node.destroy()
           this._groundHardinessTimer = 0
+          calculateDamage(closestToPlayerGrounds[0].ground, this._player)
+          addItemToCargoBay(closestToPlayerGrounds[0].ground, this._player)
         }
         return true
       }

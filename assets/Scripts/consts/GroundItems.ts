@@ -11,7 +11,7 @@ const GroundItems = {
   grass: {
     name: 'grass',
     canBeDug: true,
-    hardiness: 0.9,
+    hardiness: 1,
     canBeExploded: true,
     damage: null,
     price: null,
@@ -20,7 +20,7 @@ const GroundItems = {
   ground: {
     name: 'ground',
     canBeDug: true,
-    hardiness: 0.9,
+    hardiness: 1,
     canBeExploded: true,
     damage: null,
     price: null,
@@ -29,7 +29,7 @@ const GroundItems = {
   groundWithGas: {
     name: 'ground',
     canBeDug: true,
-    hardiness: 0.9,
+    hardiness: 1,
     canBeExploded: true,
     damage: 10,
     price: null,

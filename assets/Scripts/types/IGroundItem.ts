@@ -1,9 +1,9 @@
 export default interface IGroundItem {
-  name: string | null
-  canBeDug: boolean | null
+  name: string
+  canBeDug: boolean
   hardiness: number | null
-  canBeExploded: boolean | null
+  canBeExploded: boolean
   damage: number | null
   price: number | null
-  instantCash: boolean | null
+  instantCash: boolean
 }

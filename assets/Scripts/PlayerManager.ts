@@ -1,6 +1,7 @@
 import { _decorator, Component, RigidBody2D, Animation, Vec2, Node } from 'cc'
 import { GameSceneManager } from './GameSceneManager'
 import Direction from './enums/Direction'
+import IAttributes from './types/IAttributes'
 
 const { ccclass, property } = _decorator
 
@@ -17,9 +18,23 @@ export class PlayerManager extends Component {
   public canDigTimerActive: boolean = false
   public canDigTimer: number = 0
   public body: RigidBody2D | null = null
+  public attributes: IAttributes = {
+    wallet: 0,
+    movementSpeed: 1.5,
+    drillSpeed: 1,
+    radiator: 1,
+    hullResistance: 10,
+    currentHullResistance: 10,
+    fuelTankCapacity: 10,
+    currentFuelTankCapacity: 10,
+    cargoBayCapacity: 7,
+    currentCargoBayCapacity: 7,
+    cargoBayItems: [],
+  }
+
   private _gameSceneManager: GameSceneManager | null = null
-  private _velocity: number = 1.5
   private _animation: Animation | null = null
+  private _fuelTimer: number = 0
 
   onLoad() {
     this._gameSceneManager = this.gameSceneManagerNode.getComponent(GameSceneManager)
@@ -36,40 +51,51 @@ export class PlayerManager extends Component {
         this.movementTimer = 0
       }
     }
+
+    if (this.controllerActive && this.movementCommands.length >= 1) {
+      this._fuelTimer += deltaTime
+      if (this._fuelTimer >= 1) {
+        this.attributes.currentFuelTankCapacity -= 0.25
+        this._fuelTimer = 0
+        console.log(this.attributes.currentFuelTankCapacity)
+      }
+    }
   }
 
   public flyLeft() {
-    if (this.body.linearVelocity.y < this._velocity * 4) {
-      this.body.applyLinearImpulseToCenter(new Vec2(0, this._velocity * 2), true)
+    if (this.body.linearVelocity.y < this.attributes.movementSpeed * 4) {
+      this.body.applyLinearImpulseToCenter(new Vec2(0, this.attributes.movementSpeed * 2), true)
     }
     this._animation.play('flyLeft')
   }
 
   public flyRight() {
-    if (this.body.linearVelocity.y < this._velocity * 4) {
-      this.body.applyLinearImpulseToCenter(new Vec2(0, this._velocity * 2), true)
+    if (this.body.linearVelocity.y < this.attributes.movementSpeed * 4) {
+      this.body.applyLinearImpulseToCenter(new Vec2(0, this.attributes.movementSpeed * 2), true)
     }
     this._animation.play('flyRight')
   }
 
   public digDownLeft() {
+    this.body.linearVelocity = new Vec2(0, 0)
     this._animation.play('digDownLeft')
   }
 
   public digDownRight() {
+    this.body.linearVelocity = new Vec2(0, 0)
     this._animation.play('digDownRight')
   }
 
   public moveLeft() {
-    if (this.body.linearVelocity.x > -this._velocity * 4) {
-      this.body.applyLinearImpulseToCenter(new Vec2(-this._velocity, 0), true)
+    if (this.body.linearVelocity.x > -this.attributes.movementSpeed * 4) {
+      this.body.applyLinearImpulseToCenter(new Vec2(-this.attributes.movementSpeed, 0), true)
     }
     this._animation.play('moveLeft')
   }
 
   public moveRight() {
-    if (this.body.linearVelocity.x < this._velocity * 4) {
-      this.body.applyLinearImpulseToCenter(new Vec2(this._velocity, 0), true)
+    if (this.body.linearVelocity.x < this.attributes.movementSpeed * 4) {
+      this.body.applyLinearImpulseToCenter(new Vec2(this.attributes.movementSpeed, 0), true)
     }
     this._animation.play('moveRight')
   }
