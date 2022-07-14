@@ -52,12 +52,12 @@ export class PlayerManager extends Component {
       }
     }
 
+    // Consumes fuel when performing actions.
     if (this.controllerActive && this.movementCommands.length >= 1) {
       this._fuelTimer += deltaTime
       if (this._fuelTimer >= 1) {
         this.attributes.currentFuelTankCapacity -= 0.25
         this._fuelTimer = 0
-        console.log(this.attributes.currentFuelTankCapacity)
       }
     }
   }

@@ -9,6 +9,10 @@ import {
   Input,
   KeyCode,
   BoxCollider2D,
+  PhysicsSystem2D,
+  Contact2DType,
+  Collider2D,
+  RigidBody2D,
   // PhysicsSystem2D,
   // Contact2DType,
   // Collider2D,
@@ -55,7 +59,7 @@ export class GameSceneManager extends Component {
     input.on(Input.EventType.KEY_UP, this._onKeyUp, this)
     this._player = this.playerNode.getComponent(PlayerManager)
 
-    // PhysicsSystem2D.instance.on(Contact2DType.BEGIN_CONTACT, this._onBeginContact, this)
+    PhysicsSystem2D.instance.on(Contact2DType.BEGIN_CONTACT, this._onBeginContact, this)
   }
 
   update(deltaTime: number) {
@@ -148,9 +152,16 @@ export class GameSceneManager extends Component {
     }
   }
 
-  // private _onBeginContact(a: Collider2D, b: Collider2D) {
-  // TODO: Check if velocity is to high, if so do damage.
-  // }
+  private _onBeginContact(a: Collider2D, b: Collider2D) {
+    // Check if velocity is to high, if so do damage.
+    if (
+      a.node.name === 'Ground' &&
+      b.node.name === 'Player' &&
+      b.node.getComponent(RigidBody2D).linearVelocity.y <= -8
+    ) {
+      this._player.attributes.currentHullResistance -= Math.abs(b.node.getComponent(RigidBody2D).linearVelocity.y) - 8
+    }
+  }
 
   public canDig(direction: Direction): boolean {
     // Can't dig while it's falling.
