@@ -13,9 +13,6 @@ import {
   Contact2DType,
   Collider2D,
   RigidBody2D,
-  // PhysicsSystem2D,
-  // Contact2DType,
-  // Collider2D,
 } from 'cc'
 import { PlayerManager } from './PlayerManager'
 import generateGroundGrid from './lib/generateGroundGrid'
@@ -28,8 +25,8 @@ import Direction from './enums/Direction'
 
 const { ccclass, property } = _decorator
 
-@ccclass('GameSceneManager')
-export class GameSceneManager extends Component {
+@ccclass('MainSceneManager')
+export class MainSceneManager extends Component {
   @property({ type: Node })
   public groundRef: Node | null = null
 

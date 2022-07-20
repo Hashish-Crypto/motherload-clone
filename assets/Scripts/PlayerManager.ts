@@ -1,5 +1,5 @@
 import { _decorator, Component, RigidBody2D, Animation, Vec2, Node } from 'cc'
-import { GameSceneManager } from './GameSceneManager'
+import { MainSceneManager } from './MainSceneManager'
 import Direction from './enums/Direction'
 import IAttributes from './types/IAttributes'
 
@@ -8,7 +8,7 @@ const { ccclass, property } = _decorator
 @ccclass('PlayerManager')
 export class PlayerManager extends Component {
   @property({ type: Node })
-  public gameSceneManagerNode: Node | null = null
+  public mainSceneManagerNode: Node | null = null
 
   public controllerActive: boolean = true
   public movementCommands: Direction[] = []
@@ -32,12 +32,12 @@ export class PlayerManager extends Component {
     cargoBayItems: [],
   }
 
-  private _gameSceneManager: GameSceneManager | null = null
+  private _mainScene: MainSceneManager | null = null
   private _animation: Animation | null = null
   private _fuelTimer: number = 0
 
   onLoad() {
-    this._gameSceneManager = this.gameSceneManagerNode.getComponent(GameSceneManager)
+    this._mainScene = this.mainSceneManagerNode.getComponent(MainSceneManager)
     this.body = this.node.getComponent(RigidBody2D)
     this._animation = this.node.getComponent(Animation)
   }
@@ -124,7 +124,7 @@ export class PlayerManager extends Component {
         this.flyLeft()
         this.movementTimerActive = true
       } else if (this.movementCommands[this.movementCommands.length - 1] === Direction.RIGHT) {
-        if (this._gameSceneManager.canDig(Direction.RIGHT)) {
+        if (this._mainScene.canDig(Direction.RIGHT)) {
           this.digRight()
           this.canDigTimerActive = true
         } else {
@@ -132,7 +132,7 @@ export class PlayerManager extends Component {
         }
         this.movementTimerActive = true
       } else if (this.movementCommands[this.movementCommands.length - 1] === Direction.DOWN) {
-        if (this._gameSceneManager.canDig(Direction.DOWN)) {
+        if (this._mainScene.canDig(Direction.DOWN)) {
           this.digDownLeft()
           this.canDigTimerActive = true
         } else {
@@ -140,7 +140,7 @@ export class PlayerManager extends Component {
         }
         this.movementTimerActive = true
       } else if (this.movementCommands[this.movementCommands.length - 1] === Direction.LEFT) {
-        if (this._gameSceneManager.canDig(Direction.LEFT)) {
+        if (this._mainScene.canDig(Direction.LEFT)) {
           this.digLeft()
           this.canDigTimerActive = true
         } else {
