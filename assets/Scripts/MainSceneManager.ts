@@ -18,10 +18,10 @@ import { PlayerManager } from './PlayerManager'
 import generateGroundGrid from './lib/generateGroundGrid'
 import getDistanceBetweenPoints from './lib/getDistanceBetweenPoints'
 import getVectorDirection from './lib/getVectorDirection'
-import calculateDamage from './lib/calculateDamage'
 import addItemToCargoBay from './lib/addItemToCargoBay'
 import type IGround from './types/IGround'
 import Direction from './enums/Direction'
+import DamageType from './enums/DamageType'
 
 const { ccclass, property } = _decorator
 
@@ -152,11 +152,13 @@ export class MainSceneManager extends Component {
   private _onBeginContact(a: Collider2D, b: Collider2D) {
     // Check if velocity is to high, if so do damage.
     if (
+      !this._player.fallDamageTimerActive &&
       a.node.name === 'Ground' &&
       b.node.name === 'Player' &&
       b.node.getComponent(RigidBody2D).linearVelocity.y <= -8
     ) {
-      this._player.attributes.currentHullResistance -= Math.abs(b.node.getComponent(RigidBody2D).linearVelocity.y) - 8
+      this._player.fallDamageTimerActive = true
+      this._calculateDamage(DamageType.FALL, Math.abs(b.node.getComponent(RigidBody2D).linearVelocity.y) - 8)
     }
   }
 
@@ -237,6 +239,13 @@ export class MainSceneManager extends Component {
           closestToPlayerGrounds[0].ground.active = false
           closestToPlayerGrounds[0].ground.node.destroy()
           this._groundHardinessTimer = 0
+          if (closestToPlayerGrounds[0].ground.damage !== null) {
+            if (closestToPlayerGrounds[0].ground.name === 'lava') {
+              this._calculateDamage(DamageType.LAVA, closestToPlayerGrounds[0].ground.damage)
+            } else {
+              this._calculateDamage(DamageType.EXPLOSION, closestToPlayerGrounds[0].ground.damage)
+            }
+          }
           addItemToCargoBay(closestToPlayerGrounds[0].ground, this._player)
         }
         return true
@@ -275,6 +284,13 @@ export class MainSceneManager extends Component {
           closestToPlayerGrounds[0].ground.active = false
           closestToPlayerGrounds[0].ground.node.destroy()
           this._groundHardinessTimer = 0
+          if (closestToPlayerGrounds[0].ground.damage !== null) {
+            if (closestToPlayerGrounds[0].ground.name === 'lava') {
+              this._calculateDamage(DamageType.LAVA, closestToPlayerGrounds[0].ground.damage)
+            } else {
+              this._calculateDamage(DamageType.EXPLOSION, closestToPlayerGrounds[0].ground.damage)
+            }
+          }
           addItemToCargoBay(closestToPlayerGrounds[0].ground, this._player)
         }
         return true
@@ -313,7 +329,13 @@ export class MainSceneManager extends Component {
           closestToPlayerGrounds[0].ground.active = false
           closestToPlayerGrounds[0].ground.node.destroy()
           this._groundHardinessTimer = 0
-          calculateDamage(closestToPlayerGrounds[0].ground, this._player)
+          if (closestToPlayerGrounds[0].ground.damage !== null) {
+            if (closestToPlayerGrounds[0].ground.name === 'lava') {
+              this._calculateDamage(DamageType.LAVA, closestToPlayerGrounds[0].ground.damage)
+            } else {
+              this._calculateDamage(DamageType.EXPLOSION, closestToPlayerGrounds[0].ground.damage)
+            }
+          }
           addItemToCargoBay(closestToPlayerGrounds[0].ground, this._player)
         }
         return true
@@ -324,5 +346,17 @@ export class MainSceneManager extends Component {
     }
 
     return false
+  }
+
+  private _calculateDamage(type: DamageType, damage: number) {
+    if (type === DamageType.FALL || type === DamageType.EXPLOSION) {
+      this._player.attributes.currentHullResistance -= damage
+    } else if (type === DamageType.LAVA) {
+      this._player.attributes.currentHullResistance -= damage * this._player.attributes.radiator
+    }
+    console.log(this._player.attributes.currentHullResistance)
+    if (this._player.attributes.currentHullResistance <= 0) {
+      console.log('You died.')
+    }
   }
 }

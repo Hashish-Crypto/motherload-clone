@@ -14,10 +14,10 @@ export class PlayerManager extends Component {
   public movementCommands: Direction[] = []
   public lastMovementCommand: Direction = Direction.NULL
   public movementTimerActive: boolean = false
-  public movementTimer: number = 0
   public canDigTimerActive: boolean = false
   public canDigTimer: number = 0
   public body: RigidBody2D | null = null
+  public fallDamageTimerActive: boolean = false
   public attributes: IAttributes = {
     wallet: 0,
     movementSpeed: 1.5,
@@ -34,7 +34,9 @@ export class PlayerManager extends Component {
 
   private _mainScene: MainSceneManager | null = null
   private _animation: Animation | null = null
+  private _movementTimer: number = 0
   private _fuelTimer: number = 0
+  private _fallDamageTimer: number = 0
 
   onLoad() {
     this._mainScene = this.mainSceneManagerNode.getComponent(MainSceneManager)
@@ -45,10 +47,10 @@ export class PlayerManager extends Component {
   update(deltaTime: number) {
     // If the movement key is pressed, it maintains a continuous impulse.
     if (this.controllerActive && this.movementCommands.length >= 1 && this.movementTimerActive) {
-      this.movementTimer += deltaTime
-      if (this.movementTimer >= 0.1) {
+      this._movementTimer += deltaTime
+      if (this._movementTimer >= 0.1) {
         this.move()
-        this.movementTimer = 0
+        this._movementTimer = 0
       }
     }
 
@@ -58,6 +60,15 @@ export class PlayerManager extends Component {
       if (this._fuelTimer >= 1) {
         this.attributes.currentFuelTankCapacity -= 0.25
         this._fuelTimer = 0
+      }
+    }
+
+    // Insures fall damage only every 0.1 seconds.
+    if (this.fallDamageTimerActive) {
+      this._fallDamageTimer += deltaTime
+      if (this._fallDamageTimer >= 0.1) {
+        this.fallDamageTimerActive = false
+        this._fallDamageTimer = 0
       }
     }
   }
