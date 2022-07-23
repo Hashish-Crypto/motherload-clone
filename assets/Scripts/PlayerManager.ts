@@ -1,15 +1,13 @@
-import { _decorator, Component, RigidBody2D, Animation, Vec2, Node } from 'cc'
+import { _decorator, Component, RigidBody2D, Animation, Vec2 } from 'cc'
 import { MainSceneManager } from './MainSceneManager'
 import Direction from './enums/Direction'
 import IAttributes from './types/IAttributes'
+import BaseAttributes from './consts/BaseAttributes'
 
-const { ccclass, property } = _decorator
+const { ccclass } = _decorator
 
 @ccclass('PlayerManager')
 export class PlayerManager extends Component {
-  @property({ type: Node })
-  public mainSceneManagerNode: Node | null = null
-
   public controllerActive: boolean = true
   public movementCommands: Direction[] = []
   public lastMovementCommand: Direction = Direction.NULL
@@ -19,17 +17,17 @@ export class PlayerManager extends Component {
   public body: RigidBody2D | null = null
   public fallDamageTimerActive: boolean = false
   public attributes: IAttributes = {
-    wallet: 0,
-    movementSpeed: 1.5,
-    drillSpeed: 1,
-    radiator: 1,
-    hullResistance: 10,
-    currentHullResistance: 10,
-    fuelTankCapacity: 10,
-    currentFuelTankCapacity: 10,
-    cargoBayCapacity: 7,
-    currentCargoBayCapacity: 7,
+    wallet: BaseAttributes.wallet,
+    movementSpeed: BaseAttributes.movementSpeed,
+    drillSpeed: BaseAttributes.drillSpeed,
+    radiator: BaseAttributes.radiator,
+    hullResistance: BaseAttributes.hullResistance,
+    currentHullResistance: BaseAttributes.hullResistance,
+    fuelTankCapacity: BaseAttributes.fuelTankCapacity,
+    currentFuelTankCapacity: BaseAttributes.fuelTankCapacity,
+    cargoBayCapacity: BaseAttributes.cargoBayCapacity,
     cargoBayItems: [],
+    currentCargoBayCapacity: BaseAttributes.cargoBayCapacity,
   }
 
   private _mainScene: MainSceneManager | null = null
@@ -39,7 +37,11 @@ export class PlayerManager extends Component {
   private _fallDamageTimer: number = 0
 
   onLoad() {
-    this._mainScene = this.mainSceneManagerNode.getComponent(MainSceneManager)
+    this._mainScene = this.node
+      .getParent()
+      .getParent()
+      .getChildByName('MainSceneManager')
+      .getComponent(MainSceneManager)
     this.body = this.node.getComponent(RigidBody2D)
     this._animation = this.node.getComponent(Animation)
   }
@@ -160,5 +162,24 @@ export class PlayerManager extends Component {
         this.movementTimerActive = true
       }
     }
+  }
+
+  public respawn() {
+    this.controllerActive = false
+    this.movementCommands = []
+    this.lastMovementCommand = Direction.NULL
+    this.movementTimerActive = false
+    this.canDigTimerActive = false
+    this.canDigTimer = 0
+    this.fallDamageTimerActive = false
+    this._movementTimer = 0
+    this._fuelTimer = 0
+    this._fallDamageTimer = 0
+    this.attributes.currentHullResistance = this.attributes.hullResistance
+    this.attributes.currentFuelTankCapacity = this.attributes.fuelTankCapacity
+    this.attributes.cargoBayItems = []
+    this.attributes.currentCargoBayCapacity = this.attributes.cargoBayCapacity
+    this.controllerActive = true
+    console.log('respawn()')
   }
 }

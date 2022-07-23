@@ -8,11 +8,14 @@ import {
   input,
   Input,
   KeyCode,
-  BoxCollider2D,
   PhysicsSystem2D,
   Contact2DType,
   Collider2D,
   RigidBody2D,
+  instantiate,
+  Vec2,
+  CircleCollider2D,
+  Vec3,
 } from 'cc'
 import { PlayerManager } from './PlayerManager'
 import generateGroundGrid from './lib/generateGroundGrid'
@@ -33,8 +36,14 @@ export class MainSceneManager extends Component {
   @property({ type: Prefab })
   public groundPrefab: Prefab | null = null
 
+  @property({ type: Prefab })
+  public playerPrefab: Prefab | null = null
+
   @property({ type: Node })
-  public playerNode: Node | null = null
+  public canvasNode: Node | null = null
+
+  @property({ type: Node })
+  public testNode: Node | null = null
 
   private _groundGrid: IGround[][] = []
   private _groundGridWidth: number = 50
@@ -54,14 +63,22 @@ export class MainSceneManager extends Component {
 
     input.on(Input.EventType.KEY_DOWN, this._onKeyDown, this)
     input.on(Input.EventType.KEY_UP, this._onKeyUp, this)
-    this._player = this.playerNode.getComponent(PlayerManager)
+
+    const playerNode = instantiate(this.playerPrefab)
+    this.canvasNode.addChild(playerNode)
+    this._player = playerNode.getComponent(PlayerManager)
 
     PhysicsSystem2D.instance.on(Contact2DType.BEGIN_CONTACT, this._onBeginContact, this)
   }
 
   update(deltaTime: number) {
     // Periodically check if there is a ground that can be dug.
-    if (this._player.controllerActive && this._player.movementCommands.length >= 1 && this._player.canDigTimerActive) {
+    if (
+      this._player.node.isValid &&
+      this._player.controllerActive &&
+      this._player.movementCommands.length >= 1 &&
+      this._player.canDigTimerActive
+    ) {
       this._player.canDigTimer += deltaTime
       this._groundHardinessTimer += deltaTime
       if (this._player.canDigTimer >= 0.2) {
@@ -83,6 +100,11 @@ export class MainSceneManager extends Component {
         this._player.lastMovementCommand = Direction.UP
         this._player.movementCommands.push(Direction.UP)
         this._player.move()
+        this.testNode.setPosition(200, 100)
+        this.testNode.setRotationFromEuler(new Vec3(0, 0, 0))
+        this.testNode.getComponent(RigidBody2D).gravityScale = 1
+        this.testNode.getComponent(RigidBody2D).angularVelocity = 0
+        this.testNode.getComponent(RigidBody2D).linearVelocity = new Vec2(0, 0)
       } else if (event.keyCode === KeyCode.KEY_D && !this._player.movementCommands.includes(Direction.RIGHT)) {
         this._player.lastMovementCommand = Direction.RIGHT
         this._player.movementCommands.push(Direction.RIGHT)
@@ -179,7 +201,7 @@ export class MainSceneManager extends Component {
           groundNodes.push({
             distance: getDistanceBetweenPoints(
               this._player.node.position.x,
-              this._player.node.position.y + this._player.node.getComponent(BoxCollider2D).offset.y,
+              this._player.node.position.y + this._player.node.getComponent(CircleCollider2D).offset.y,
               this._groundGrid[y][x].node.position.x,
               this._groundGrid[y][x].node.position.y
             ),
@@ -206,7 +228,7 @@ export class MainSceneManager extends Component {
         if (
           getVectorDirection(
             this._player.node.position.x,
-            this._player.node.position.y + this._player.node.getComponent(BoxCollider2D).offset.y,
+            this._player.node.position.y + this._player.node.getComponent(CircleCollider2D).offset.y,
             groundNodes[i].ground.node.position.x,
             groundNodes[i].ground.node.position.y
           ) === Direction.DOWN
@@ -219,12 +241,12 @@ export class MainSceneManager extends Component {
 
       // Check if the down ground is in contact with the player.
       const h1 =
-        this._player.node.getComponent(BoxCollider2D).size.height / 2 +
+        (this._player.node.getComponent(CircleCollider2D).radius * 2) / 2 +
         closestToPlayerGrounds[0].ground.node.getComponent(UITransform).contentSize.height / 2
       const w1 = closestToPlayerGrounds[0].ground.node.getComponent(UITransform).contentSize.width / 2
       const h2 = Math.abs(
         this._player.node.position.y +
-          this._player.node.getComponent(BoxCollider2D).offset.y -
+          this._player.node.getComponent(CircleCollider2D).offset.y -
           closestToPlayerGrounds[0].ground.node.position.y
       )
       if (
@@ -261,7 +283,7 @@ export class MainSceneManager extends Component {
         if (
           getVectorDirection(
             this._player.node.position.x,
-            this._player.node.position.y + this._player.node.getComponent(BoxCollider2D).offset.y,
+            this._player.node.position.y + this._player.node.getComponent(CircleCollider2D).offset.y,
             groundNodes[i].ground.node.position.x,
             groundNodes[i].ground.node.position.y
           ) === Direction.LEFT
@@ -273,7 +295,7 @@ export class MainSceneManager extends Component {
       if (closestToPlayerGrounds.length === 0) return false
       // Check if the left ground is in contact with the player.
       const w1 =
-        this._player.node.getComponent(BoxCollider2D).size.width / 2 +
+        this._player.node.getComponent(CircleCollider2D).radius * 2 +
         closestToPlayerGrounds[0].ground.node.getComponent(UITransform).contentSize.width / 2
       const w2 = Math.abs(this._player.node.position.x - closestToPlayerGrounds[0].ground.node.position.x)
       if (closestToPlayerGrounds[0].ground.canBeDug && w2 <= w1 + 1) {
@@ -306,7 +328,7 @@ export class MainSceneManager extends Component {
         if (
           getVectorDirection(
             this._player.node.position.x,
-            this._player.node.position.y + this._player.node.getComponent(BoxCollider2D).offset.y,
+            this._player.node.position.y + this._player.node.getComponent(CircleCollider2D).offset.y,
             groundNodes[i].ground.node.position.x,
             groundNodes[i].ground.node.position.y
           ) === Direction.RIGHT
@@ -318,7 +340,7 @@ export class MainSceneManager extends Component {
       if (closestToPlayerGrounds.length === 0) return false
       // Check if the right ground is in contact with the player.
       const w1 =
-        this._player.node.getComponent(BoxCollider2D).size.width / 2 +
+        this._player.node.getComponent(CircleCollider2D).radius * 2 +
         closestToPlayerGrounds[0].ground.node.getComponent(UITransform).contentSize.width / 2
       const w2 = Math.abs(this._player.node.position.x - closestToPlayerGrounds[0].ground.node.position.x)
       if (closestToPlayerGrounds[0].ground.canBeDug && w2 <= w1 + 1) {
@@ -356,7 +378,19 @@ export class MainSceneManager extends Component {
     }
     console.log(this._player.attributes.currentHullResistance)
     if (this._player.attributes.currentHullResistance <= 0) {
-      console.log('You died.')
+      this._gameOver()
+      // this._player.respawn()
     }
+  }
+
+  private _gameOver() {
+    console.log('Game Over')
+    console.log(this._player.node.position)
+    this._player.node.setPosition(0, 0)
+    console.log(this._player.node.position)
+    // this._player.node.destroy()
+    // const playerNode = instantiate(this.playerPrefab)
+    // this.canvasNode.addChild(playerNode)
+    // this._player = playerNode.getComponent(PlayerManager)
   }
 }
