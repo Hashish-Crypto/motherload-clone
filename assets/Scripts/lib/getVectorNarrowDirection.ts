@@ -3,7 +3,7 @@ import Direction from '../enums/Direction'
 
 const getVectorDirection = (xA: number, yA: number, xB: number, yB: number) => {
   const vector = new Vec2(xB - xA, yB - yA).normalize()
-  const cos = Math.cos(Math.PI / 4)
+  const cos = Math.cos(Math.PI / 8)
   if (vector.x < cos && vector.x > -cos && vector.y >= cos) {
     return Direction.UP
   }

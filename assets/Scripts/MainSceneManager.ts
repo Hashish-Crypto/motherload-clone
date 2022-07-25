@@ -13,14 +13,12 @@ import {
   Collider2D,
   RigidBody2D,
   instantiate,
-  Vec2,
   CircleCollider2D,
-  Vec3,
 } from 'cc'
 import { PlayerManager } from './PlayerManager'
 import generateGroundGrid from './lib/generateGroundGrid'
 import getDistanceBetweenPoints from './lib/getDistanceBetweenPoints'
-import getVectorDirection from './lib/getVectorDirection'
+import getVectorNarrowDirection from './lib/getVectorNarrowDirection'
 import addItemToCargoBay from './lib/addItemToCargoBay'
 import type IGround from './types/IGround'
 import Direction from './enums/Direction'
@@ -41,9 +39,6 @@ export class MainSceneManager extends Component {
 
   @property({ type: Node })
   public canvasNode: Node | null = null
-
-  @property({ type: Node })
-  public testNode: Node | null = null
 
   private _groundGrid: IGround[][] = []
   private _groundGridWidth: number = 50
@@ -100,11 +95,6 @@ export class MainSceneManager extends Component {
         this._player.lastMovementCommand = Direction.UP
         this._player.movementCommands.push(Direction.UP)
         this._player.move()
-        this.testNode.setPosition(200, 100)
-        this.testNode.setRotationFromEuler(new Vec3(0, 0, 0))
-        this.testNode.getComponent(RigidBody2D).gravityScale = 1
-        this.testNode.getComponent(RigidBody2D).angularVelocity = 0
-        this.testNode.getComponent(RigidBody2D).linearVelocity = new Vec2(0, 0)
       } else if (event.keyCode === KeyCode.KEY_D && !this._player.movementCommands.includes(Direction.RIGHT)) {
         this._player.lastMovementCommand = Direction.RIGHT
         this._player.movementCommands.push(Direction.RIGHT)
@@ -186,7 +176,7 @@ export class MainSceneManager extends Component {
 
   public canDig(direction: Direction): boolean {
     // Can't dig while it's falling.
-    if (this._player.body.linearVelocity.y >= 0.5 || this._player.body.linearVelocity.y < -0.5) return false
+    if (this._player.body.linearVelocity.y >= 0.1 || this._player.body.linearVelocity.y < -0.1) return false
 
     const groundNodes: {
       distance: number
@@ -226,7 +216,7 @@ export class MainSceneManager extends Component {
       // Get the 8 closest grounds to the player.
       for (let i = 0; i < 8; i += 1) {
         if (
-          getVectorDirection(
+          getVectorNarrowDirection(
             this._player.node.position.x,
             this._player.node.position.y + this._player.node.getComponent(CircleCollider2D).offset.y,
             groundNodes[i].ground.node.position.x,
@@ -241,7 +231,7 @@ export class MainSceneManager extends Component {
 
       // Check if the down ground is in contact with the player.
       const h1 =
-        (this._player.node.getComponent(CircleCollider2D).radius * 2) / 2 +
+        this._player.node.getComponent(CircleCollider2D).radius +
         closestToPlayerGrounds[0].ground.node.getComponent(UITransform).contentSize.height / 2
       const w1 = closestToPlayerGrounds[0].ground.node.getComponent(UITransform).contentSize.width / 2
       const h2 = Math.abs(
@@ -281,7 +271,7 @@ export class MainSceneManager extends Component {
       // Get the 8 closest grounds to the player.
       for (let i = 0; i < 8; i += 1) {
         if (
-          getVectorDirection(
+          getVectorNarrowDirection(
             this._player.node.position.x,
             this._player.node.position.y + this._player.node.getComponent(CircleCollider2D).offset.y,
             groundNodes[i].ground.node.position.x,
@@ -295,7 +285,7 @@ export class MainSceneManager extends Component {
       if (closestToPlayerGrounds.length === 0) return false
       // Check if the left ground is in contact with the player.
       const w1 =
-        this._player.node.getComponent(CircleCollider2D).radius * 2 +
+        this._player.node.getComponent(CircleCollider2D).radius +
         closestToPlayerGrounds[0].ground.node.getComponent(UITransform).contentSize.width / 2
       const w2 = Math.abs(this._player.node.position.x - closestToPlayerGrounds[0].ground.node.position.x)
       if (closestToPlayerGrounds[0].ground.canBeDug && w2 <= w1 + 1) {
@@ -326,7 +316,7 @@ export class MainSceneManager extends Component {
       // Get the 8 closest grounds to the player.
       for (let i = 0; i < 8; i += 1) {
         if (
-          getVectorDirection(
+          getVectorNarrowDirection(
             this._player.node.position.x,
             this._player.node.position.y + this._player.node.getComponent(CircleCollider2D).offset.y,
             groundNodes[i].ground.node.position.x,
@@ -340,7 +330,7 @@ export class MainSceneManager extends Component {
       if (closestToPlayerGrounds.length === 0) return false
       // Check if the right ground is in contact with the player.
       const w1 =
-        this._player.node.getComponent(CircleCollider2D).radius * 2 +
+        this._player.node.getComponent(CircleCollider2D).radius +
         closestToPlayerGrounds[0].ground.node.getComponent(UITransform).contentSize.width / 2
       const w2 = Math.abs(this._player.node.position.x - closestToPlayerGrounds[0].ground.node.position.x)
       if (closestToPlayerGrounds[0].ground.canBeDug && w2 <= w1 + 1) {
@@ -376,7 +366,6 @@ export class MainSceneManager extends Component {
     } else if (type === DamageType.LAVA) {
       this._player.attributes.currentHullResistance -= damage * this._player.attributes.radiator
     }
-    console.log(this._player.attributes.currentHullResistance)
     if (this._player.attributes.currentHullResistance <= 0) {
       this._gameOver()
       // this._player.respawn()
