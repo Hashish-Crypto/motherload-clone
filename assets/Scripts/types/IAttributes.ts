@@ -4,7 +4,7 @@ interface ICargoBayItem {
 }
 
 export default interface IAttributes {
-  wallet: number
+  cash: number
   movementSpeed: number
   drillSpeed: number
   radiator: number

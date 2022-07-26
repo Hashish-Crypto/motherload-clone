@@ -3,7 +3,7 @@ const BaseAttributes = {
     x: 0,
     y: 0,
   },
-  wallet: 0,
+  cash: 0,
   movementSpeed: 1.5,
   drillSpeed: 1,
   radiator: 1,

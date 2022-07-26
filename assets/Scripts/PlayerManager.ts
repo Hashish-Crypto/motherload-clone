@@ -1,9 +1,10 @@
-import { _decorator, Component, RigidBody2D, Animation, Vec2, Label } from 'cc'
+import { _decorator, Component, RigidBody2D, Animation, Vec2 } from 'cc'
 import { MainSceneManager } from './MainSceneManager'
 import Direction from './enums/Direction'
 import IAttributes from './types/IAttributes'
 import BaseAttributes from './consts/BaseAttributes'
 import DamageType from './enums/DamageType'
+import IGround from './types/IGround'
 
 const { ccclass } = _decorator
 
@@ -18,7 +19,7 @@ export class PlayerManager extends Component {
   public body: RigidBody2D | null = null
   public fallDamageTimerActive: boolean = false
   public attributes: IAttributes = {
-    wallet: BaseAttributes.wallet,
+    cash: BaseAttributes.cash,
     movementSpeed: BaseAttributes.movementSpeed,
     drillSpeed: BaseAttributes.drillSpeed,
     radiator: BaseAttributes.radiator,
@@ -45,6 +46,11 @@ export class PlayerManager extends Component {
       .getComponent(MainSceneManager)
     this.body = this.node.getComponent(RigidBody2D)
     this._animation = this.node.getComponent(Animation)
+
+    this._setFuelTankCapacity(this.attributes.currentFuelTankCapacity)
+    this._setHullResistance(this.attributes.currentHullResistance)
+    this._setCash(this.attributes.cash)
+    this._setCargoBayCapacity(this.attributes.cargoBayCapacity)
   }
 
   update(deltaTime: number) {
@@ -62,9 +68,9 @@ export class PlayerManager extends Component {
       this._fuelTimer += deltaTime
       if (this._fuelTimer >= 1) {
         this._fuelTimer = 0
-        // this._setFuel((this.attributes.currentFuelTankCapacity -= 0.25))
+        this._setFuelTankCapacity((this.attributes.currentFuelTankCapacity -= 0.25))
         // Fuel consumes fast for testing:
-        this._setFuel((this.attributes.currentFuelTankCapacity -= 1))
+        // this._setFuelTankCapacity(this.attributes.currentFuelTankCapacity - 1)
       }
     }
 
@@ -167,8 +173,61 @@ export class PlayerManager extends Component {
     }
   }
 
+  private _setFuelTankCapacity(value: number) {
+    this.attributes.currentFuelTankCapacity = value
+    this._mainScene.fuelLabel.string =
+      'Fuel: ' + Math.ceil(this.attributes.currentFuelTankCapacity) + '/' + this.attributes.fuelTankCapacity
+    if (this.attributes.currentFuelTankCapacity <= 0) {
+      this._mainScene.gameOver()
+    }
+  }
+
+  private _setHullResistance(value: number) {
+    this.attributes.currentHullResistance = value
+    this._mainScene.hullLabel.string =
+      'Hull: ' + Math.ceil(this.attributes.currentHullResistance) + '/' + this.attributes.hullResistance
+    if (this.attributes.currentHullResistance <= 0) {
+      this._mainScene.gameOver()
+    }
+  }
+
+  private _setCash(value: number) {
+    this.attributes.cash = value
+    this._mainScene.cashLabel.string = 'Cash: $' + this.attributes.cash
+  }
+
+  private _setCargoBayCapacity(value: number) {
+    this.attributes.currentCargoBayCapacity = value
+    this._mainScene.cargoBayLabel.string =
+      'Cargo Bay: ' +
+      (this.attributes.cargoBayCapacity - this.attributes.currentCargoBayCapacity) +
+      '/' +
+      this.attributes.cargoBayCapacity
+  }
+
+  public calculateDamage(type: DamageType, damage: number) {
+    if (type === DamageType.FALL || type === DamageType.EXPLOSION) {
+      this._setHullResistance(this.attributes.currentHullResistance - damage)
+    } else if (type === DamageType.LAVA) {
+      this._setHullResistance(this.attributes.currentHullResistance - damage * this.attributes.radiator)
+    }
+  }
+
+  public addItemToCargoBay = (ground: IGround) => {
+    if (ground.price !== null) {
+      if (ground.instantCash) {
+        this._setCash(this.attributes.cash + ground.price)
+      } else if (this.attributes.currentCargoBayCapacity >= 1) {
+        this.attributes.cargoBayItems.push({
+          name: ground.name,
+          price: ground.price,
+        })
+        this._setCargoBayCapacity(this.attributes.currentCargoBayCapacity - 1)
+      }
+    }
+  }
+
   public respawn() {
-    console.log(this.node.position)
     this.controllerActive = false
     this.movementCommands = []
     this.lastMovementCommand = Direction.NULL
@@ -179,38 +238,13 @@ export class PlayerManager extends Component {
     this._movementTimer = 0
     this._fuelTimer = 0
     this._fallDamageTimer = 0
-    this.attributes.currentHullResistance = this.attributes.hullResistance
-    this.attributes.currentFuelTankCapacity = this.attributes.fuelTankCapacity
+    this._setFuelTankCapacity(this.attributes.fuelTankCapacity)
+    this._setHullResistance(this.attributes.hullResistance)
     this.attributes.cargoBayItems = []
-    this.attributes.currentCargoBayCapacity = this.attributes.cargoBayCapacity
+    this._setCargoBayCapacity(this.attributes.cargoBayCapacity)
     this.controllerActive = true
+    this.body.linearVelocity = new Vec2(0, 0)
     this.node.setPosition(0, 0)
     console.log('Respawn.')
-    console.log(this.node.position)
-  }
-
-  private _setFuel(value: number) {
-    this.attributes.currentFuelTankCapacity = value
-    if (this.attributes.currentFuelTankCapacity <= 0) {
-      this._mainScene.gameOver()
-    }
-    this._mainScene.node
-      .getParent()
-      .getChildByName('GameUI')
-      .getChildByName('FuelLabel')
-      .getChildByName('Label')
-      .getComponent(Label).string =
-      'Fuel: ' + Math.ceil(this.attributes.currentFuelTankCapacity) + '/' + this.attributes.fuelTankCapacity
-  }
-
-  public calculateDamage(type: DamageType, damage: number) {
-    if (type === DamageType.FALL || type === DamageType.EXPLOSION) {
-      this.attributes.currentHullResistance -= damage
-    } else if (type === DamageType.LAVA) {
-      this.attributes.currentHullResistance -= damage * this.attributes.radiator
-    }
-    if (this.attributes.currentHullResistance <= 0) {
-      this._mainScene.gameOver()
-    }
   }
 }

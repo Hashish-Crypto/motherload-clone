@@ -22,7 +22,6 @@ import { PlayerManager } from './PlayerManager'
 import generateGroundGrid from './lib/generateGroundGrid'
 import getDistanceBetweenPoints from './lib/getDistanceBetweenPoints'
 import getVectorNarrowDirection from './lib/getVectorNarrowDirection'
-import addItemToCargoBay from './lib/addItemToCargoBay'
 import type IGround from './types/IGround'
 import Direction from './enums/Direction'
 import DamageType from './enums/DamageType'
@@ -45,6 +44,15 @@ export class MainSceneManager extends Component {
 
   @property({ type: Label })
   public fuelLabel: Label | null = null
+
+  @property({ type: Label })
+  public hullLabel: Label | null = null
+
+  @property({ type: Label })
+  public cashLabel: Label | null = null
+
+  @property({ type: Label })
+  public cargoBayLabel: Label | null = null
 
   private _groundGrid: IGround[][] = []
   private _groundGridWidth: number = 50
@@ -267,7 +275,7 @@ export class MainSceneManager extends Component {
               this._player.calculateDamage(DamageType.EXPLOSION, closestToPlayerGrounds[0].ground.damage)
             }
           }
-          addItemToCargoBay(closestToPlayerGrounds[0].ground, this._player)
+          this._player.addItemToCargoBay(closestToPlayerGrounds[0].ground)
         }
         return true
       }
@@ -312,7 +320,7 @@ export class MainSceneManager extends Component {
               this._player.calculateDamage(DamageType.EXPLOSION, closestToPlayerGrounds[0].ground.damage)
             }
           }
-          addItemToCargoBay(closestToPlayerGrounds[0].ground, this._player)
+          this._player.addItemToCargoBay(closestToPlayerGrounds[0].ground)
         }
         return true
       }
@@ -357,7 +365,7 @@ export class MainSceneManager extends Component {
               this._player.calculateDamage(DamageType.EXPLOSION, closestToPlayerGrounds[0].ground.damage)
             }
           }
-          addItemToCargoBay(closestToPlayerGrounds[0].ground, this._player)
+          this._player.addItemToCargoBay(closestToPlayerGrounds[0].ground)
         }
         return true
       }
