@@ -14,6 +14,9 @@ import {
   RigidBody2D,
   instantiate,
   CircleCollider2D,
+  Canvas,
+  Camera,
+  Label,
 } from 'cc'
 import { PlayerManager } from './PlayerManager'
 import generateGroundGrid from './lib/generateGroundGrid'
@@ -40,6 +43,9 @@ export class MainSceneManager extends Component {
   @property({ type: Node })
   public canvasNode: Node | null = null
 
+  @property({ type: Label })
+  public fuelLabel: Label | null = null
+
   private _groundGrid: IGround[][] = []
   private _groundGridWidth: number = 50
   private _groundGridHeight: number = 100
@@ -62,6 +68,9 @@ export class MainSceneManager extends Component {
     const playerNode = instantiate(this.playerPrefab)
     this.canvasNode.addChild(playerNode)
     this._player = playerNode.getComponent(PlayerManager)
+    this.canvasNode.getComponent(Canvas).cameraComponent = this._player.node
+      .getChildByName('Camera')
+      .getComponent(Camera)
 
     PhysicsSystem2D.instance.on(Contact2DType.BEGIN_CONTACT, this._onBeginContact, this)
   }
@@ -77,6 +86,7 @@ export class MainSceneManager extends Component {
       this._player.canDigTimer += deltaTime
       this._groundHardinessTimer += deltaTime
       if (this._player.canDigTimer >= 0.2) {
+        this._player.canDigTimer = 0
         if (this._player.lastMovementCommand === Direction.DOWN && this.canDig(Direction.DOWN)) {
           this._player.digDownLeft()
         } else if (this._player.lastMovementCommand === Direction.LEFT && this.canDig(Direction.LEFT)) {
@@ -84,7 +94,6 @@ export class MainSceneManager extends Component {
         } else if (this._player.lastMovementCommand === Direction.RIGHT && this.canDig(Direction.RIGHT)) {
           this._player.digRight()
         }
-        this._player.canDigTimer = 0
       }
     }
   }
@@ -116,39 +125,39 @@ export class MainSceneManager extends Component {
       if (event.keyCode === KeyCode.KEY_W) {
         this._player.movementCommands = this._player.movementCommands.filter((direction) => direction !== Direction.UP)
         if (this._player.movementCommands.length === 0) {
-          this._player.idleLeft()
-          this._player.movementTimerActive = false
           this._groundHardinessTimer = 0
+          this._player.movementTimerActive = false
+          this._player.idleLeft()
         }
       } else if (event.keyCode === KeyCode.KEY_D) {
         this._player.movementCommands = this._player.movementCommands.filter(
           (direction) => direction !== Direction.RIGHT
         )
         if (this._player.movementCommands.length === 0) {
-          this._player.idleRight()
+          this._groundHardinessTimer = 0
           this._player.movementTimerActive = false
           this._player.canDigTimerActive = false
-          this._groundHardinessTimer = 0
+          this._player.idleRight()
         }
       } else if (event.keyCode === KeyCode.KEY_S) {
         this._player.movementCommands = this._player.movementCommands.filter(
           (direction) => direction !== Direction.DOWN
         )
         if (this._player.movementCommands.length === 0) {
-          this._player.idleLeft()
+          this._groundHardinessTimer = 0
           this._player.movementTimerActive = false
           this._player.canDigTimerActive = false
-          this._groundHardinessTimer = 0
+          this._player.idleLeft()
         }
       } else if (event.keyCode === KeyCode.KEY_A) {
         this._player.movementCommands = this._player.movementCommands.filter(
           (direction) => direction !== Direction.LEFT
         )
         if (this._player.movementCommands.length === 0) {
-          this._player.idleLeft()
+          this._groundHardinessTimer = 0
           this._player.movementTimerActive = false
           this._player.canDigTimerActive = false
-          this._groundHardinessTimer = 0
+          this._player.idleLeft()
         }
       }
 
@@ -169,8 +178,8 @@ export class MainSceneManager extends Component {
       b.node.name === 'Player' &&
       b.node.getComponent(RigidBody2D).linearVelocity.y <= -8
     ) {
+      this._player.calculateDamage(DamageType.FALL, Math.abs(b.node.getComponent(RigidBody2D).linearVelocity.y) - 8)
       this._player.fallDamageTimerActive = true
-      this._calculateDamage(DamageType.FALL, Math.abs(b.node.getComponent(RigidBody2D).linearVelocity.y) - 8)
     }
   }
 
@@ -248,14 +257,14 @@ export class MainSceneManager extends Component {
           this._groundHardinessTimer >=
           closestToPlayerGrounds[0].ground.hardiness * this._player.attributes.drillSpeed
         ) {
+          this._groundHardinessTimer = 0
           closestToPlayerGrounds[0].ground.active = false
           closestToPlayerGrounds[0].ground.node.destroy()
-          this._groundHardinessTimer = 0
           if (closestToPlayerGrounds[0].ground.damage !== null) {
             if (closestToPlayerGrounds[0].ground.name === 'lava') {
-              this._calculateDamage(DamageType.LAVA, closestToPlayerGrounds[0].ground.damage)
+              this._player.calculateDamage(DamageType.LAVA, closestToPlayerGrounds[0].ground.damage)
             } else {
-              this._calculateDamage(DamageType.EXPLOSION, closestToPlayerGrounds[0].ground.damage)
+              this._player.calculateDamage(DamageType.EXPLOSION, closestToPlayerGrounds[0].ground.damage)
             }
           }
           addItemToCargoBay(closestToPlayerGrounds[0].ground, this._player)
@@ -293,14 +302,14 @@ export class MainSceneManager extends Component {
           this._groundHardinessTimer >=
           closestToPlayerGrounds[0].ground.hardiness * this._player.attributes.drillSpeed
         ) {
+          this._groundHardinessTimer = 0
           closestToPlayerGrounds[0].ground.active = false
           closestToPlayerGrounds[0].ground.node.destroy()
-          this._groundHardinessTimer = 0
           if (closestToPlayerGrounds[0].ground.damage !== null) {
             if (closestToPlayerGrounds[0].ground.name === 'lava') {
-              this._calculateDamage(DamageType.LAVA, closestToPlayerGrounds[0].ground.damage)
+              this._player.calculateDamage(DamageType.LAVA, closestToPlayerGrounds[0].ground.damage)
             } else {
-              this._calculateDamage(DamageType.EXPLOSION, closestToPlayerGrounds[0].ground.damage)
+              this._player.calculateDamage(DamageType.EXPLOSION, closestToPlayerGrounds[0].ground.damage)
             }
           }
           addItemToCargoBay(closestToPlayerGrounds[0].ground, this._player)
@@ -338,14 +347,14 @@ export class MainSceneManager extends Component {
           this._groundHardinessTimer >=
           closestToPlayerGrounds[0].ground.hardiness * this._player.attributes.drillSpeed
         ) {
+          this._groundHardinessTimer = 0
           closestToPlayerGrounds[0].ground.active = false
           closestToPlayerGrounds[0].ground.node.destroy()
-          this._groundHardinessTimer = 0
           if (closestToPlayerGrounds[0].ground.damage !== null) {
             if (closestToPlayerGrounds[0].ground.name === 'lava') {
-              this._calculateDamage(DamageType.LAVA, closestToPlayerGrounds[0].ground.damage)
+              this._player.calculateDamage(DamageType.LAVA, closestToPlayerGrounds[0].ground.damage)
             } else {
-              this._calculateDamage(DamageType.EXPLOSION, closestToPlayerGrounds[0].ground.damage)
+              this._player.calculateDamage(DamageType.EXPLOSION, closestToPlayerGrounds[0].ground.damage)
             }
           }
           addItemToCargoBay(closestToPlayerGrounds[0].ground, this._player)
@@ -360,23 +369,9 @@ export class MainSceneManager extends Component {
     return false
   }
 
-  private _calculateDamage(type: DamageType, damage: number) {
-    if (type === DamageType.FALL || type === DamageType.EXPLOSION) {
-      this._player.attributes.currentHullResistance -= damage
-    } else if (type === DamageType.LAVA) {
-      this._player.attributes.currentHullResistance -= damage * this._player.attributes.radiator
-    }
-    if (this._player.attributes.currentHullResistance <= 0) {
-      this._gameOver()
-      // this._player.respawn()
-    }
-  }
-
-  private _gameOver() {
-    console.log('Game Over')
-    console.log(this._player.node.position)
-    this._player.node.setPosition(0, 0)
-    console.log(this._player.node.position)
+  public gameOver() {
+    this._player.controllerActive = false
+    this._player.respawn()
     // this._player.node.destroy()
     // const playerNode = instantiate(this.playerPrefab)
     // this.canvasNode.addChild(playerNode)

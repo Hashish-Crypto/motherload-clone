@@ -1,8 +1,9 @@
-import { _decorator, Component, RigidBody2D, Animation, Vec2 } from 'cc'
+import { _decorator, Component, RigidBody2D, Animation, Vec2, Label } from 'cc'
 import { MainSceneManager } from './MainSceneManager'
 import Direction from './enums/Direction'
 import IAttributes from './types/IAttributes'
 import BaseAttributes from './consts/BaseAttributes'
+import DamageType from './enums/DamageType'
 
 const { ccclass } = _decorator
 
@@ -51,8 +52,8 @@ export class PlayerManager extends Component {
     if (this.controllerActive && this.movementCommands.length >= 1 && this.movementTimerActive) {
       this._movementTimer += deltaTime
       if (this._movementTimer >= 0.1) {
-        this.move()
         this._movementTimer = 0
+        this.move()
       }
     }
 
@@ -60,8 +61,10 @@ export class PlayerManager extends Component {
     if (this.controllerActive && this.movementCommands.length >= 1) {
       this._fuelTimer += deltaTime
       if (this._fuelTimer >= 1) {
-        this.attributes.currentFuelTankCapacity -= 0.25
         this._fuelTimer = 0
+        // this._setFuel((this.attributes.currentFuelTankCapacity -= 0.25))
+        // Fuel consumes fast for testing:
+        this._setFuel((this.attributes.currentFuelTankCapacity -= 1))
       }
     }
 
@@ -69,8 +72,8 @@ export class PlayerManager extends Component {
     if (this.fallDamageTimerActive) {
       this._fallDamageTimer += deltaTime
       if (this._fallDamageTimer >= 0.1) {
-        this.fallDamageTimerActive = false
         this._fallDamageTimer = 0
+        this.fallDamageTimerActive = false
       }
     }
   }
@@ -165,6 +168,7 @@ export class PlayerManager extends Component {
   }
 
   public respawn() {
+    console.log(this.node.position)
     this.controllerActive = false
     this.movementCommands = []
     this.lastMovementCommand = Direction.NULL
@@ -180,6 +184,33 @@ export class PlayerManager extends Component {
     this.attributes.cargoBayItems = []
     this.attributes.currentCargoBayCapacity = this.attributes.cargoBayCapacity
     this.controllerActive = true
-    console.log('respawn()')
+    this.node.setPosition(0, 0)
+    console.log('Respawn.')
+    console.log(this.node.position)
+  }
+
+  private _setFuel(value: number) {
+    this.attributes.currentFuelTankCapacity = value
+    if (this.attributes.currentFuelTankCapacity <= 0) {
+      this._mainScene.gameOver()
+    }
+    this._mainScene.node
+      .getParent()
+      .getChildByName('GameUI')
+      .getChildByName('FuelLabel')
+      .getChildByName('Label')
+      .getComponent(Label).string =
+      'Fuel: ' + Math.ceil(this.attributes.currentFuelTankCapacity) + '/' + this.attributes.fuelTankCapacity
+  }
+
+  public calculateDamage(type: DamageType, damage: number) {
+    if (type === DamageType.FALL || type === DamageType.EXPLOSION) {
+      this.attributes.currentHullResistance -= damage
+    } else if (type === DamageType.LAVA) {
+      this.attributes.currentHullResistance -= damage * this.attributes.radiator
+    }
+    if (this.attributes.currentHullResistance <= 0) {
+      this._mainScene.gameOver()
+    }
   }
 }
