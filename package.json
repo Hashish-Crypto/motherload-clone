@@ -3,7 +3,7 @@
   "creator": {
     "version": "3.5.2"
   },
-  "description": "Motherload game clone using Cocos Creator 3.5.1.",
+  "description": "Motherload game clone using Cocos Creator 3.5.2.",
   "devDependencies": {
     "@babel/core": "^7.18.2",
     "@babel/eslint-parser": "^7.18.2",

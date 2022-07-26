@@ -1,7 +1,7 @@
 # Motherload Clone - Cocos Creator
 
 [Motherload](https://www.miniclip.com/games/motherload/en/) game clone using
-[Cocos Creator 3.5.1](https://www.cocos.com/en/creator).
+[Cocos Creator 3.5.2](https://www.cocos.com/en/creator).
 
 Live demo: [acquati.itch.io/motherload-clone](https://acquati.itch.io/motherload-clone)
 
